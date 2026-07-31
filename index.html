@@ -272,6 +272,32 @@
   .toy .tag { border-style: dashed; border-color: rgba(236,228,216,0.3); color: var(--ink-dim); font-style: italic; }
   .toy:hover .tag, .toy:focus-visible .tag { opacity: 1; }
 
+  /* the toy plane hangs from the ceiling and sways on its string */
+  .toy.plane {
+    transform: translate(-50%, 0);
+    transform-origin: 50% 0;
+    animation: planesway 5s ease-in-out infinite;
+    filter: brightness(calc(1 - var(--night) * 0.35));
+  }
+  .toy.plane svg { display: block; width: 100%; height: auto; }
+  .toy.plane:hover { animation-play-state: paused; }
+  @keyframes planesway {
+    0%, 100% { rotate: 3deg; }
+    50%      { rotate: -3deg; }
+  }
+  /* click: one big swoop over the room and back to the string.
+     first and last frames are omitted so it starts and ends wherever
+     the plane hangs, even if its spot gets nudged in ROOMS. */
+  .toy.plane.fly { animation: flightpath 4.5s ease-in-out; }
+  .toy.plane.fly .string { opacity: 0; }
+  @keyframes flightpath {
+    18% { left: 46%; top: 34%; rotate: -16deg; }
+    40% { left: 22%; top: 46%; rotate: -6deg; }
+    62% { left: 17%; top: 28%; rotate: 12deg; }
+    82% { left: 40%; top: 15%; rotate: 10deg; }
+  }
+  .cat svg { filter: brightness(calc(1 - var(--night) * 0.35)); }
+
   .toy.bounce { animation: boing 0.5s ease; }
   /* uses the translate property so it composes with any base transform */
   @keyframes boing {
@@ -502,6 +528,7 @@
     .spot .dot, .toy .spark, .glow.flicker.on { animation: none; }
     .dot, .tag, .grade, .glow, .scrap { transition: none; }
     .toy.bounce, .cat.stretch svg, .bubble, .zzz { animation: none; }
+    .toy.plane, .toy.plane.fly { animation: none; }
     .ember { display: none; }
   }
 </style>
@@ -597,11 +624,12 @@ const ROOMS = [
       { id: 'radio',    kind: 'radio',    label: 'the radio',     x: 70,   y: 57 },
       { id: 'corgi',    kind: 'corgi',    label: 'the dog',       x: 43.5, y: 71,   box: [39, 65, 9, 13] },
       { id: 'notebook', kind: 'notebook', label: 'the guestbook', x: 56.5, y: 74.5 },
+      { id: 'plane',    kind: 'plane',    label: 'the plane',     x: 63.5, y: 26.5, w: 8 },
     ],
     cat: { x: 12.5, y: 69.5, w: 8 },
     /* wall slots where visitor notes get pinned, [x, y, tilt-degrees] */
     paperSlots: [
-      [12, 53, -4], [24.5, 31, 3], [44, 35, -2], [56, 30.5, 3], [63, 52.5, -3], [76, 36, 2],
+      [12, 53, -4], [24.5, 31, 3], [44, 35, -2], [13, 38, 3], [63, 52.5, -3], [76, 36, 2],
     ],
     glows: [
       { id: 'hearth',  x: 24.5, y: 61, size: 34, flicker: true },
@@ -858,6 +886,33 @@ function makeToy(toy, room) {
   } else if (toy.kind === 'notebook') {
     btn.setAttribute('aria-haspopup', 'dialog');
     btn.addEventListener('click', openNotebook);
+  } else if (toy.kind === 'plane') {
+    spark.remove(); /* the plane is its own attraction */
+    btn.classList.add('plane');
+    btn.style.width = `${toy.w}%`;
+    btn.insertAdjacentHTML('afterbegin', `<svg viewBox="0 0 100 150" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <line class="string" x1="50" y1="0" x2="50" y2="52" stroke="rgba(236,228,216,0.45)" stroke-width="1.5"/>
+      <ellipse cx="13" cy="82" rx="3" ry="16" fill="#3a3230" opacity="0.8"/>
+      <path d="M14 82 C20 70 40 66 60 70 L84 74 C90 75 90 85 84 86 L60 90 C40 94 20 92 14 82 Z" fill="#b0453a" stroke="#3a3230" stroke-width="2"/>
+      <path d="M76 74 L88 58 C91 56 94 58 93 62 L88 76 Z" fill="#e8d9b8" stroke="#3a3230" stroke-width="2"/>
+      <path d="M34 76 L64 70 C69 69 69 77 64 78 L34 84 C29 85 29 77 34 76 Z" fill="#e8d9b8" stroke="#3a3230" stroke-width="2"/>
+      <circle cx="40" cy="76" r="4" fill="#f4e8d2" stroke="#3a3230" stroke-width="1.5"/>
+      <line x1="34" y1="90" x2="32" y2="100" stroke="#3a3230" stroke-width="2"/>
+      <line x1="52" y1="91" x2="54" y2="100" stroke="#3a3230" stroke-width="2"/>
+      <circle cx="32" cy="102" r="4" fill="#3a3230"/>
+      <circle cx="54" cy="102" r="4" fill="#3a3230"/>
+    </svg>`);
+    let flying = false;
+    btn.addEventListener('click', () => {
+      if (reducedMotion) { speak(room, toy.x, toy.y + 2, 'nyoom.'); return; }
+      if (flying) return;
+      flying = true;
+      speak(room, toy.x, toy.y + 2, 'nyooom');
+      btn.classList.add('fly');
+    });
+    btn.addEventListener('animationend', (e) => {
+      if (e.animationName === 'flightpath') { btn.classList.remove('fly'); flying = false; }
+    });
   } else if (toy.kind === 'corgi') {
     spark.remove(); /* the dog is his own attraction */
     let boops = 0;
