@@ -569,9 +569,10 @@
    Every number is a % of that room's photo, so it scales with the page.
 
    spots: places a project can live. x/y is the dot, box is the
-     clickable area [left, top, width, height]. A repo topic like
-     "on-couch" pins that repo to the couch; unpinned repos fill the
-     remaining spots top to bottom.
+     clickable area [left, top, width, height]. Which repo sits on
+     which spot is managed in projects.json, next to this file — one
+     line per repo. (A repo topic like "on-couch" still works as a
+     fallback.) Unpinned repos fill the remaining spots top to bottom.
    toys:  things that are only fun. They look different on purpose.
    glows: warm halos on the photo's own light sources, used at night.
    ===================================================================== */
@@ -1172,31 +1173,53 @@ function applyHash() {
 window.addEventListener('hashchange', applyHash);
 
 /* ---- projects from GitHub ------------------------------------------- */
+/* projects.json (next to this file) is the one place to manage which
+   repo sits on which object. It beats topics; see the notes inside it. */
+async function loadPins() {
+  try {
+    const r = await fetch('projects.json', { cache: 'no-cache' });
+    if (!r.ok) return {};
+    const data = await r.json();
+    const pins = {};
+    for (const [repo, spot] of Object.entries(data.pins || {})) {
+      if (typeof spot === 'string') pins[repo.toLowerCase()] = spot.toLowerCase();
+    }
+    return pins;
+  } catch { return {}; }
+}
+
 async function load() {
   render(EXAMPLES);
   if (!USERNAME || USERNAME === 'YOUR-USERNAME-HERE') {
     statusEl.textContent = 'no github username set yet, so these are pretend projects.';
     return;
   }
+  const pins = await loadPins();
+  const validSpot = id => !!id && ROOMS.some(rm => rm.spots.some(s => s.id === id));
   try {
     const r = await fetch(`https://api.github.com/users/${USERNAME}/repos?per_page=100&sort=updated&type=owner`);
     if (!r.ok) throw new Error();
     const repos = await r.json();
     const mine = (Array.isArray(repos) ? repos : [])
-      .filter(x => !x.archived && (x.topics || []).includes('room'));
+      .filter(x => !x.archived)
+      .filter(x => (x.topics || []).includes('room') || x.name.toLowerCase() in pins)
+      .filter(x => pins[x.name.toLowerCase()] !== 'hide');
     if (!mine.length) {
-      statusEl.textContent = 'nothing on github is tagged “room” yet, so these are pretend projects for now.';
+      statusEl.textContent = 'nothing is listed in projects.json or tagged “room” yet, so these are pretend projects for now.';
       return;
     }
-    render(mine.map(x => ({
-      name: titleCase(x.name),
-      blurb: x.description || 'no description yet. mysterious.',
-      url: x.homepage || x.html_url,
-      pushed: x.pushed_at,
-      pin: (x.topics || [])
-        .map(t => (t.match(/^on-(.+)$/) || [])[1])
-        .find(id => id && ROOMS.some(rm => rm.spots.some(s => s.id === id))) || null,
-    })));
+    render(mine.map(x => {
+      const filePin = pins[x.name.toLowerCase()];
+      return {
+        name: titleCase(x.name),
+        blurb: x.description || 'no description yet. mysterious.',
+        url: x.homepage || x.html_url,
+        pushed: x.pushed_at,
+        pin: validSpot(filePin) ? filePin : (x.topics || [])
+          .map(t => (t.match(/^on-(.+)$/) || [])[1])
+          .find(validSpot) || null,
+      };
+    }));
     statusEl.textContent = `${mine.length} thing${mine.length > 1 ? 's' : ''} · fresh from github.`;
   } catch {
     statusEl.textContent = "couldn't reach github just now, so these are pretend projects.";
