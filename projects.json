@@ -4,6 +4,8 @@
   "_spots": ["mirror", "fireplace", "couch", "shelves", "tv", "sideboard", "prints", "desk", "rug"],
   "_note": "The page reads github's public api, so private repos can't appear.",
   "pins": {
-    "room": "desk"
+    "italia-trip": "prints",
+    "stay-the-hire": "desk",
+    "room": "shelves"
   }
 }
