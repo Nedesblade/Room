@@ -185,6 +185,7 @@
 
   /* ---- project dots ------------------------------------------------ */
   .spot { position: absolute; display: block; }
+  button.spot { background: none; border: 0; padding: 0; cursor: pointer; }
   .spot:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; border-radius: 10px; }
   .spot .dot {
     position: absolute;
@@ -472,6 +473,7 @@
   .list a:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; border-radius: 3px; }
   .list .blurb { color: var(--ink-dim); }
   .list .newchip { margin-left: 0.45rem; }
+  .list .privname { color: var(--ink); font-weight: 540; }
 
   .status {
     margin-top: 1.4rem;
@@ -662,8 +664,9 @@ function timeAgo(iso) {
 function showCard(p) {
   card.innerHTML = '';
   const h = document.createElement('h2');
-  const a = document.createElement('a');
-  a.href = p.url; a.textContent = p.name;
+  const a = document.createElement(p.url ? 'a' : 'span');
+  if (p.url) a.href = p.url;
+  a.textContent = p.name;
   h.appendChild(a);
   if (isNew(p.pushed)) {
     const chip = document.createElement('span');
@@ -673,9 +676,12 @@ function showCard(p) {
   const blurb = document.createElement('span');
   blurb.className = 'blurb'; blurb.textContent = p.blurb;
   card.append(h, blurb);
-  if (p.pushed) {
+  const bits = [];
+  if (p.pushed) bits.push(timeAgo(p.pushed));
+  if (!p.url && p.priv) bits.push('private — ask me about it');
+  if (bits.length) {
     const meta = document.createElement('span');
-    meta.className = 'meta'; meta.textContent = timeAgo(p.pushed);
+    meta.className = 'meta'; meta.textContent = bits.join(' · ');
     card.append(meta);
   }
 }
@@ -971,11 +977,12 @@ function renderRoom(roomData, projects) {
     if (!p) continue;
     p._spot = spot.id;
     const [bl, bt, bw, bh] = spot.box;
-    const a = document.createElement('a');
+    const a = document.createElement(p.url ? 'a' : 'button');
     a.className = 'spot' + (isNew(p.pushed) ? ' new' : '');
     a.id = `spot-${spot.id}`;
-    a.href = p.url;
-    a.setAttribute('aria-label', `${p.name} — ${p.blurb}`);
+    if (p.url) a.href = p.url;
+    else { a.type = 'button'; a.addEventListener('click', () => showCard(p)); }
+    a.setAttribute('aria-label', `${p.name} — ${p.blurb}${p.url ? '' : ' (private project)'}`);
     a.style.cssText = `left:${bl}%;top:${bt}%;width:${bw}%;height:${bh}%`;
     const dx = ((spot.x - bl) / bw) * 100, dy = ((spot.y - bt) / bh) * 100;
     const dot = document.createElement('span');
@@ -1123,8 +1130,9 @@ function renderList(projects) {
   listEl.innerHTML = '';
   for (const p of projects) {
     const li = document.createElement('li');
-    const a = document.createElement('a');
-    a.href = p.url; a.textContent = p.name;
+    const a = document.createElement(p.url ? 'a' : 'span');
+    if (p.url) a.href = p.url; else a.className = 'privname';
+    a.textContent = p.name;
     li.appendChild(a);
     if (isNew(p.pushed)) {
       const chip = document.createElement('span');
@@ -1134,9 +1142,12 @@ function renderList(projects) {
     const blurb = document.createElement('span');
     blurb.className = 'blurb'; blurb.textContent = ` — ${p.blurb}`;
     li.append(blurb);
-    if (p.pushed) {
+    const bits = [];
+    if (p.pushed) bits.push(timeAgo(p.pushed));
+    if (!p.url && p.priv) bits.push('private — ask me about it');
+    if (bits.length) {
       const meta = document.createElement('p');
-      meta.className = 'meta'; meta.textContent = timeAgo(p.pushed);
+      meta.className = 'meta'; meta.textContent = bits.join(' · ');
       li.append(meta);
     }
     /* the list and the room know about each other */
@@ -1188,6 +1199,18 @@ async function loadPins() {
   } catch { return {}; }
 }
 
+/* projects-data.json is a build-time snapshot written by the deploy
+   workflow with a private token, so private repos can appear too. When
+   it's absent the page falls back to github's live public api. */
+async function fetchSnapshot() {
+  try {
+    const r = await fetch('projects-data.json', { cache: 'no-cache' });
+    if (!r.ok) return null;
+    const data = await r.json();
+    return Array.isArray(data.repos) && data.repos.length ? data.repos : null;
+  } catch { return null; }
+}
+
 async function load() {
   render(EXAMPLES);
   if (!USERNAME || USERNAME === 'YOUR-USERNAME-HERE') {
@@ -1196,34 +1219,42 @@ async function load() {
   }
   const pins = await loadPins();
   const validSpot = id => !!id && ROOMS.some(rm => rm.spots.some(s => s.id === id));
-  try {
-    const r = await fetch(`https://api.github.com/users/${USERNAME}/repos?per_page=100&sort=updated&type=owner`);
-    if (!r.ok) throw new Error();
-    const repos = await r.json();
-    const mine = (Array.isArray(repos) ? repos : [])
-      .filter(x => !x.archived)
-      .filter(x => (x.topics || []).includes('room') || x.name.toLowerCase() in pins)
-      .filter(x => pins[x.name.toLowerCase()] !== 'hide');
-    if (!mine.length) {
-      statusEl.textContent = 'nothing is listed in projects.json or tagged “room” yet, so these are pretend projects for now.';
+  let repos = await fetchSnapshot();
+  if (!repos) {
+    try {
+      const r = await fetch(`https://api.github.com/users/${USERNAME}/repos?per_page=100&sort=updated&type=owner`);
+      if (!r.ok) throw new Error();
+      repos = await r.json();
+    } catch {
+      statusEl.textContent = "couldn't reach github just now, so these are pretend projects.";
       return;
     }
-    render(mine.map(x => {
-      const filePin = pins[x.name.toLowerCase()];
-      return {
-        name: titleCase(x.name),
-        blurb: x.description || 'no description yet. mysterious.',
-        url: x.homepage || x.html_url,
-        pushed: x.pushed_at,
-        pin: validSpot(filePin) ? filePin : (x.topics || [])
-          .map(t => (t.match(/^on-(.+)$/) || [])[1])
-          .find(validSpot) || null,
-      };
-    }));
-    statusEl.textContent = `${mine.length} thing${mine.length > 1 ? 's' : ''} · fresh from github.`;
-  } catch {
-    statusEl.textContent = "couldn't reach github just now, so these are pretend projects.";
   }
+  const mine = (Array.isArray(repos) ? repos : [])
+    .filter(x => !x.archived)
+    .filter(x => (x.topics || []).includes('room') || x.name.toLowerCase() in pins)
+    .filter(x => pins[x.name.toLowerCase()] !== 'hide');
+  if (!mine.length) {
+    statusEl.textContent = 'nothing is listed in projects.json or tagged “room” yet, so these are pretend projects for now.';
+    return;
+  }
+  render(mine.map(x => {
+    const filePin = pins[x.name.toLowerCase()];
+    return {
+      name: titleCase(x.name),
+      blurb: x.description || 'no description yet. mysterious.',
+      /* a private repo's github url would 404 for guests: prefer its
+         website, then a copy hosted in this repo under projects/<name>/,
+         and otherwise show it without a link */
+      url: x.homepage || (x.hosted ? `projects/${x.name}/` : (!x.private ? x.html_url : null)),
+      pushed: x.pushed_at,
+      priv: !!x.private,
+      pin: validSpot(filePin) ? filePin : (x.topics || [])
+        .map(t => (t.match(/^on-(.+)$/) || [])[1])
+        .find(validSpot) || null,
+    };
+  }));
+  statusEl.textContent = `${mine.length} thing${mine.length > 1 ? 's' : ''} · fresh from github.`;
 }
 
 /* the room remembers you (locally — nothing leaves your browser) */
