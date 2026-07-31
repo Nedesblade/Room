@@ -6,6 +6,8 @@ on:
       - main
       - claude/bedroom-photo-landing-page-g36hdn
       - claude/room-object-repo-mapping-f5qlxk
+  schedule:
+    - cron: '23 5 * * *'   # daily refresh of projects-data.json
   workflow_dispatch:
 
 permissions:
@@ -25,6 +27,43 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      # Reads ALL repos (private included) with a fine-grained read-only
+      # PAT stored as the PROJECTS_TOKEN secret, and publishes only the
+      # display fields the page needs. Without the secret this step is a
+      # no-op and the page falls back to the live public api.
+      - name: Build project snapshot
+        env:
+          PROJECTS_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
+        run: |
+          python3 - <<'EOF'
+          import datetime, json, os, urllib.request
+          token = os.environ.get('PROJECTS_TOKEN', '').strip()
+          if not token:
+              print('PROJECTS_TOKEN not set; skipping snapshot (page falls back to the public api)')
+              raise SystemExit(0)
+          req = urllib.request.Request(
+              'https://api.github.com/user/repos?visibility=all&affiliation=owner&per_page=100&sort=updated',
+              headers={'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json'})
+          repos = json.load(urllib.request.urlopen(req))
+          out = []
+          for r in repos:
+              if r.get('archived'):
+                  continue
+              name = r['name']
+              out.append({
+                  'name': name,
+                  'description': r.get('description'),
+                  'homepage': r.get('homepage'),
+                  'html_url': r.get('html_url'),
+                  'pushed_at': r.get('pushed_at'),
+                  'topics': r.get('topics') or [],
+                  'private': bool(r.get('private')),
+                  'hosted': os.path.isfile(os.path.join('projects', name, 'index.html')),
+              })
+          snapshot = {'generated_at': datetime.datetime.utcnow().isoformat() + 'Z', 'repos': out}
+          json.dump(snapshot, open('projects-data.json', 'w'), indent=1)
+          print('wrote projects-data.json with %d repos' % len(out))
+          EOF
       - uses: actions/configure-pages@v5
         with:
           enablement: true
