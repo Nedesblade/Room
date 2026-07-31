@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>my room</title>
 <meta name="description" content="A little map of my room. The glowing dots are things I've made.">
+<meta property="og:title" content="hello — you've found my room.">
+<meta property="og:description" content="The glowing dots are things I've made. There's a dog, a radio, and a notebook if you'd like to leave a note.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nedesblade.github.io/Room/">
+<meta property="og:image" content="https://nedesblade.github.io/Room/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%23ffb474' opacity='.22'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23ffb474'/%3E%3Ccircle cx='13.5' cy='13.5' r='2.5' fill='%23ffe6c4'/%3E%3C/svg%3E">
 <style>
   /* Fonts are embedded so the whole page is one file. */
   @font-face {
@@ -26,7 +35,8 @@
     --bg-top: #1e2d2f;
     --bg-bottom: #2e4145;
     --ink: #ece4d8;
-    --ink-dim: #a3b4b6;
+    --ink-dim: #adbdc0;
+    --halo: 0 0 0 3px rgba(10, 16, 18, 0.5);
     --amber: #ffb474;
     --amber-deep: #e8934f;
     --card: rgba(16, 26, 28, 0.45);
@@ -38,12 +48,15 @@
   html { background: var(--bg-top); }
   body {
     background: linear-gradient(var(--bg-top), var(--bg-bottom) 55%, var(--bg-bottom));
-    background-attachment: fixed;
     color: var(--ink);
     font-family: 'Bricolage Grotesque', system-ui, sans-serif;
     font-weight: 380;
     line-height: 1.55;
     -webkit-font-smoothing: antialiased;
+  }
+  /* fixed attachment janks on touch browsers; only desktops get it */
+  @media (hover: hover) and (pointer: fine) {
+    body { background-attachment: fixed; }
   }
 
   .wrap { max-width: 720px; margin: 0 auto; padding: 3.5rem 1.25rem 4rem; }
@@ -57,7 +70,7 @@
   header p { color: var(--ink-dim); max-width: 36rem; }
 
   /* ---- the room ---------------------------------------------------- */
-  .room { position: relative; margin: 2.25rem 0 0; }
+  .room { position: relative; margin: 2.75rem 0 0; }
   .room > .photo { display: block; width: 100%; height: auto; }
 
   /* Evening grade: a tiny warm-dimmed copy of the same photo, multiplied
@@ -99,20 +112,20 @@
     transform: translate(-50%, -50%);
     border-radius: 50%;
     background: radial-gradient(circle at 35% 35%, #ffe6c4, var(--amber) 55%, var(--amber-deep));
-    box-shadow: 0 0 8px 2px rgba(255,180,116,0.75), 0 0 22px 6px rgba(255,160,90,0.35);
+    box-shadow: var(--halo), 0 0 8px 2px rgba(255,180,116,0.75), 0 0 22px 6px rgba(255,160,90,0.35);
     animation: pulse 2.6s ease-in-out infinite;
     transition: scale 0.2s ease;
   }
   .spot:hover .dot, .spot:focus-visible .dot { animation-play-state: paused; scale: 1.25; }
   @keyframes pulse {
-    0%, 100% { box-shadow: 0 0 6px 1px rgba(255,180,116,0.55), 0 0 16px 4px rgba(255,160,90,0.22); }
-    50%      { box-shadow: 0 0 10px 3px rgba(255,190,130,0.9), 0 0 30px 10px rgba(255,165,95,0.4); }
+    0%, 100% { box-shadow: var(--halo), 0 0 6px 1px rgba(255,180,116,0.55), 0 0 16px 4px rgba(255,160,90,0.22); }
+    50%      { box-shadow: var(--halo), 0 0 10px 3px rgba(255,190,130,0.9), 0 0 30px 10px rgba(255,165,95,0.4); }
   }
 
   /* Fresh projects (pushed in the last two weeks) burn brighter. */
   .spot.new .dot {
     background: radial-gradient(circle at 35% 35%, #fff3dc, #ffc793 50%, #ff9d54);
-    box-shadow: 0 0 12px 4px rgba(255,200,140,0.95), 0 0 34px 12px rgba(255,170,100,0.5);
+    box-shadow: var(--halo), 0 0 12px 4px rgba(255,200,140,0.95), 0 0 34px 12px rgba(255,170,100,0.5);
   }
   .newchip {
     font-family: 'Spline Sans Mono', ui-monospace, monospace;
@@ -130,7 +143,7 @@
   .spot.lit .dot {
     animation: none;
     scale: 1.3;
-    box-shadow: 0 0 0 3px rgba(255,220,180,0.9), 0 0 18px 6px rgba(255,180,116,0.9), 0 0 44px 16px rgba(255,160,90,0.45);
+    box-shadow: var(--halo), 0 0 0 3px rgba(255,220,180,0.9), 0 0 18px 6px rgba(255,180,116,0.9), 0 0 44px 16px rgba(255,160,90,0.45);
   }
   .spot.lit .tag { opacity: 1; }
 
@@ -214,9 +227,11 @@
     line-height: 1.3;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
     filter: brightness(calc(1 - var(--night) * 0.4));
-    pointer-events: none;
+    cursor: pointer;
     overflow: hidden;
+    transition: scale 0.15s ease;
   }
+  .scrap:hover { scale: 1.06; }
   .scrap::before {
     /* the pin */
     content: '';
@@ -317,26 +332,34 @@
     min-height: 1em;
   }
 
-  /* ---- the card ---------------------------------------------------- */
+  /* ---- the caption card -------------------------------------------- */
   .card {
-    margin-top: 1.5rem;
-    min-height: 6.5rem;
-    padding: 1.1rem 1.3rem;
+    margin-top: 1rem;
+    min-height: 3.2rem;
+    padding: 0.65rem 1rem;
     background: var(--card);
     border: 1px solid rgba(236,228,216,0.08);
-    border-radius: 14px;
+    border-radius: 12px;
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.6rem;
   }
-  .card .hint { color: var(--ink-dim); }
-  .card h2 { font-size: 1.15rem; font-weight: 620; margin-bottom: 0.2rem; }
+  .card .hint {
+    color: var(--ink-dim);
+    font-family: 'Spline Sans Mono', ui-monospace, monospace;
+    font-size: 0.74rem;
+  }
+  .card h2 { font-size: 1.02rem; font-weight: 620; display: inline; }
   .card h2 a { color: var(--ink); text-decoration-color: rgba(255,180,116,0.5); }
   .card h2 a:hover { color: var(--amber); }
-  .card .blurb { color: var(--ink-dim); }
+  .card .blurb { color: var(--ink-dim); font-size: 0.92rem; }
   .meta {
     font-family: 'Spline Sans Mono', ui-monospace, monospace;
     font-size: 0.72rem;
-    color: rgba(255,180,116,0.75);
-    margin-top: 0.45rem;
+    color: rgba(255, 193, 138, 0.9);
   }
+  .card .meta { margin-left: auto; }
 
   /* ---- the plain list ---------------------------------------------- */
   .list { margin-top: 3rem; }
@@ -379,7 +402,7 @@
 
   @media (prefers-reduced-motion: reduce) {
     .spot .dot, .toy .spark, .glow.flicker.on { animation: none; }
-    .dot, .tag, .grade, .glow { transition: none; }
+    .dot, .tag, .grade, .glow, .scrap { transition: none; }
     .toy.bounce, .cat.stretch svg { animation: none; }
   }
 </style>
@@ -538,11 +561,26 @@ function showCard(p) {
     chip.className = 'newchip'; chip.textContent = 'new';
     h.append(' ', chip);
   }
-  const blurb = document.createElement('p');
+  const blurb = document.createElement('span');
   blurb.className = 'blurb'; blurb.textContent = p.blurb;
-  const meta = document.createElement('p');
-  meta.className = 'meta'; meta.textContent = timeAgo(p.pushed);
-  card.append(h, blurb, meta);
+  card.append(h, blurb);
+  if (p.pushed) {
+    const meta = document.createElement('span');
+    meta.className = 'meta'; meta.textContent = timeAgo(p.pushed);
+    card.append(meta);
+  }
+}
+
+/* a guestbook note shown in the same caption spot */
+function showNoteCard(n) {
+  card.innerHTML = '';
+  const blurb = document.createElement('span');
+  blurb.className = 'blurb';
+  blurb.textContent = `“${n.message}”`;
+  const meta = document.createElement('span');
+  meta.className = 'meta';
+  meta.textContent = `— ${n.name || 'someone'}, in the notebook`;
+  card.append(blurb, meta);
 }
 
 /* ---- time of day ---------------------------------------------------- */
@@ -718,6 +756,7 @@ function renderRoom(roomData, projects) {
   for (const spot of roomData.spots) {
     const p = taken.get(spot.id);
     if (!p) continue;
+    p._spot = spot.id;
     const [bl, bt, bw, bh] = spot.box;
     const a = document.createElement('a');
     a.className = 'spot' + (isNew(p.pushed) ? ' new' : '');
@@ -775,6 +814,8 @@ function renderScraps(roomData, room) {
     who.className = 'who';
     who.textContent = `— ${n.name || 'someone'}`;
     scrap.append(msg, who);
+    scrap.addEventListener('mouseenter', () => showNoteCard(n));
+    scrap.addEventListener('click', openNotebook);
     room.appendChild(scrap);
   });
 }
@@ -868,9 +909,19 @@ function renderList(projects) {
     }
     const blurb = document.createElement('span');
     blurb.className = 'blurb'; blurb.textContent = ` — ${p.blurb}`;
-    const meta = document.createElement('p');
-    meta.className = 'meta'; meta.textContent = timeAgo(p.pushed);
-    li.append(blurb, meta);
+    li.append(blurb);
+    if (p.pushed) {
+      const meta = document.createElement('p');
+      meta.className = 'meta'; meta.textContent = timeAgo(p.pushed);
+      li.append(meta);
+    }
+    /* the list and the room know about each other */
+    const dotOf = () => document.getElementById(`spot-${p._spot}`);
+    const light = on => { const el = dotOf(); if (el) el.classList.toggle('lit', on); };
+    li.addEventListener('mouseenter', () => light(true));
+    li.addEventListener('mouseleave', () => light(false));
+    a.addEventListener('focus', () => light(true));
+    a.addEventListener('blur', () => light(false));
     listEl.appendChild(li);
   }
 }
@@ -887,12 +938,11 @@ function applyHash() {
   const id = location.hash.slice(1);
   document.querySelectorAll('.spot.lit').forEach(el => el.classList.remove('lit'));
   if (!id) return;
+  if (id === 'guestbook') { openNotebook(); return; }
   const spotEl = document.getElementById(`spot-${id}`);
   if (!spotEl) return;
   spotEl.classList.add('lit');
-  /* find the project on that spot via its aria-label */
-  const name = (spotEl.getAttribute('aria-label') || '').split(' — ')[0];
-  const proj = current.find(x => x.name === name);
+  const proj = current.find(x => x._spot === id);
   if (proj) showCard(proj);
   spotEl.scrollIntoView({ block: 'center', behavior: 'auto' });
 }
@@ -924,7 +974,7 @@ async function load() {
         .map(t => (t.match(/^on-(.+)$/) || [])[1])
         .find(id => id && ROOMS.some(rm => rm.spots.some(s => s.id === id))) || null,
     })));
-    statusEl.textContent = 'fresh from github.';
+    statusEl.textContent = `${mine.length} thing${mine.length > 1 ? 's' : ''} · fresh from github.`;
   } catch {
     statusEl.textContent = "couldn't reach github just now, so these are pretend projects.";
   }
