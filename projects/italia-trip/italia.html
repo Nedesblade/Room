@@ -1,0 +1,1885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Italia · Oct 1–11 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  :root{--board:#10171E;--navy:#182430;--cream:#EDE6D6;--amber:#E8A33D;--red:#C1443D;--teal:#3F6E64;
+        --fog:#EEF2F3;--slate:#1F2B38;--soft:#5B6B78;--rome:#B0533C;--florence:#7A6C3E;--chianti:#6B4A6E;--bologna:#A8763C;--venice:#3E6478;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--fog);color:var(--slate);font-family:'IBM Plex Sans',sans-serif;}
+  .app{max-width:880px;margin:0 auto;padding:20px 16px 90px;}
+  .btn{font-weight:600;font-size:13px;border:none;border-radius:8px;padding:9px 13px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;transition:filter .12s;}
+  .btn:hover{filter:brightness(1.06);} .btn[disabled]{opacity:.5;cursor:wait;}
+  .btn-teal{background:var(--teal);color:#EEF6F3;} .btn-outline{background:#fff;color:var(--slate);border:1px solid #C9D2D6;}
+  .btn-sm{padding:6px 10px;font-size:12px;}
+
+  .ticket{background:var(--board);border-radius:16px;overflow:hidden;box-shadow:0 8px 24px rgba(16,23,30,.3);}
+  .ticket-top{padding:20px 22px 14px;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;}
+  .ticket h1{font-family:'Big Shoulders Display',sans-serif;font-weight:800;font-size:32px;color:var(--cream);margin:0;letter-spacing:1px;line-height:1;}
+  .ticket h1 small{display:block;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:2.4px;color:var(--amber);font-weight:500;margin-top:7px;}
+  .toggles{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+  .tg{display:flex;background:#1B2530;border:1px solid #2B3947;border-radius:999px;overflow:hidden;}
+  .tg button{background:none;border:none;color:#7A8A96;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:1px;padding:7px 11px;cursor:pointer;}
+  .tg button.on{background:var(--amber);color:#2A1B04;font-weight:600;}
+  .flights{display:grid;grid-template-columns:1fr 1fr;border-top:1px dashed #2B3947;}
+  .flight{padding:14px 22px;font-family:'IBM Plex Mono',monospace;}
+  .flight:first-child{border-right:1px dashed #2B3947;}
+  .flight .fno{color:var(--amber);font-size:11px;letter-spacing:1px;margin-bottom:5px;}
+  .flight .lr{display:flex;align-items:baseline;gap:10px;color:var(--cream);font-size:19px;font-weight:600;}
+  .flight .lr .ar{color:#4A5B69;font-size:13px;}
+  .flight .mt{color:#7A8A96;font-size:10.5px;margin-top:5px;line-height:1.6;}
+  @media(max-width:560px){.flights{grid-template-columns:1fr;}.flight:first-child{border-right:none;border-bottom:1px dashed #2B3947;}}
+
+  .banner{margin-top:14px;background:#FDF7EA;border:1px solid #EFE0BC;border-radius:12px;padding:12px 14px;font-size:12.5px;color:#6B5320;line-height:1.55;display:none;}
+  .banner.show{display:block;}
+  h2.sec{font-family:'Big Shoulders Display',sans-serif;font-weight:700;font-size:23px;color:var(--navy);margin:32px 0 3px;letter-spacing:.5px;}
+  p.secsub{color:var(--soft);font-size:12.5px;margin:0 0 14px;}
+
+  .strip{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:14px;}
+  @media(max-width:560px){.strip{grid-template-columns:repeat(2,1fr);}}
+  .stat{background:#fff;border:1px solid #E3E9EB;border-radius:12px;padding:12px;text-align:center;}
+  .stat .num{font-family:'Big Shoulders Display',sans-serif;font-size:27px;font-weight:800;color:var(--navy);line-height:1;}
+  .stat .lbl{font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:1.2px;color:var(--soft);margin-top:5px;text-transform:uppercase;}
+
+  .ck{background:#fff;border:1px solid #E3E9EB;border-radius:10px;margin-bottom:7px;overflow:hidden;}
+  .ck-main{display:flex;align-items:center;gap:11px;padding:11px 13px;}
+  .ck-box{width:21px;height:21px;border:2px solid #C9D2D6;border-radius:6px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;cursor:pointer;}
+  .ck.done .ck-box{background:var(--teal);border-color:var(--teal);}
+  .ck-txt{flex:1;font-size:13px;line-height:1.4;cursor:pointer;}
+  .ck.done .ck-txt{color:var(--soft);}
+  .ck-vcount{display:block;font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--teal);margin-top:3px;letter-spacing:.4px;}
+  .ck-due{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.5px;white-space:nowrap;padding:3px 7px;border-radius:5px;}
+  .ck-due.late{background:#FDF2F1;color:var(--red);} .ck-due.soon{background:#FDF7EA;color:#9A6B1E;}
+  .ck-due.ok{background:#F2F6F5;color:var(--soft);} .ck-due.done{background:#F0F5F4;color:var(--teal);}
+  .ck-vault{display:none;padding:0 13px 12px 45px;gap:8px;flex-wrap:wrap;}
+  .ck-vault.open{display:flex;}
+  .ck-vault label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.8px;color:var(--soft);text-transform:uppercase;display:flex;flex-direction:column;gap:4px;flex:1 1 150px;}
+  .ck-vault input{border:1px solid #D5DCDE;border-radius:7px;padding:7px 9px;font-size:12.5px;font-family:'IBM Plex Sans',sans-serif;color:var(--slate);background:#FBFCFC;text-transform:none;letter-spacing:0;}
+
+  .day{background:#fff;border:1px solid #E3E9EB;border-radius:0 12px 12px 0;padding:14px 16px 14px 22px;margin-bottom:10px;border-left:4px solid var(--teal);cursor:pointer;transition:box-shadow .15s;}
+  .day.active{box-shadow:0 3px 14px rgba(24,36,48,.12);}
+  .day.istoday{border-width:4px 2px 2px 6px;border-style:solid;border-color:var(--amber) #EFE0BC #EFE0BC var(--amber);}
+  .day.rome{border-left-color:var(--rome);} .day.florence{border-left-color:var(--florence);}
+  .day.chianti{border-left-color:var(--chianti);} .day.bologna{border-left-color:var(--bologna);}
+  .day.venice{border-left-color:var(--venice);} .day.transit{border-left-color:#8A98A3;background:#F7FAFA;}
+  .day-head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px;margin-bottom:7px;}
+  .day-head h3{font-family:'Big Shoulders Display',sans-serif;font-size:17px;margin:0;color:var(--navy);}
+  .todaytag{font-family:'IBM Plex Mono',monospace;font-size:9px;background:var(--amber);color:#2A1B04;padding:2px 6px;border-radius:4px;letter-spacing:1px;vertical-align:middle;}
+  .city-tag{font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:1.3px;padding:4px 8px;border-radius:4px;color:#fff;text-transform:uppercase;}
+  .rome .city-tag{background:var(--rome);} .florence .city-tag{background:var(--florence);}
+  .chianti .city-tag{background:var(--chianti);} .bologna .city-tag{background:var(--bologna);}
+  .venice .city-tag{background:var(--venice);} .transit .city-tag{background:#8A98A3;}
+  .bookedrow{margin:0 0 8px;display:flex;flex-direction:column;gap:4px;}
+  .bk{background:#F0F5F4;border:1px solid #D7E4E1;border-radius:7px;padding:6px 9px;font-size:11.5px;color:#2F5850;font-weight:600;}
+  .bk span{display:block;font-family:'IBM Plex Mono',monospace;font-weight:400;font-size:10.5px;color:#4E6A64;margin-top:2px;}
+  .slot{display:grid;grid-template-columns:58px 1fr;gap:11px;padding:6px 0;font-size:13px;line-height:1.55;}
+  .slot .t{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--soft);padding-top:3px;}
+  .slot b{color:var(--navy);}
+  .slot .cost{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--teal);white-space:nowrap;}
+  .tip{background:#FBF7EE;border:1px solid #EFE3C8;border-radius:8px;padding:9px 11px;font-size:12px;margin-top:9px;color:#6B5A2E;line-height:1.5;}
+  .pb{margin-top:8px;border-top:1px dashed #E3E9EB;padding-top:8px;}
+  .pb-t{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.6px;color:var(--soft);cursor:pointer;user-select:none;}
+  .pb-t:hover{color:var(--teal);}
+  .pb-b{display:none;font-size:12.5px;line-height:1.55;color:#4A5B66;background:#F5F8F8;border-radius:8px;padding:10px 12px;margin-top:7px;}
+  .pb.open .pb-b{display:block;}
+
+  .cwrap{margin-top:8px;border-top:1px dashed #E3E9EB;padding-top:8px;}
+  .cbtn{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.6px;color:var(--soft);cursor:pointer;user-select:none;}
+  .cbtn:hover{color:var(--teal);}
+  .cbtn .cnum{color:var(--teal);font-weight:600;}
+  .cthread{display:none;margin-top:8px;}
+  .cthread.open{display:block;}
+  .cmt{background:#F5F8F8;border-radius:8px;padding:8px 11px;margin-bottom:6px;}
+  .cmt .cn{font-size:12px;font-weight:600;color:var(--navy);margin-right:8px;}
+  .cmt .ct{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--soft);letter-spacing:.4px;}
+  .cmt .cx{font-size:12.5px;line-height:1.5;color:#4A5B66;margin-top:3px;white-space:pre-wrap;}
+  .cempty{font-size:12px;color:var(--soft);font-style:italic;padding:2px 0 8px;}
+  .cform{display:grid;grid-template-columns:120px 1fr auto;gap:6px;}
+  @media(max-width:560px){.cform{grid-template-columns:1fr;}}
+  .cform input{border:1px solid #D5DCDE;border-radius:7px;padding:7px 9px;font-size:12.5px;font-family:'IBM Plex Sans',sans-serif;color:var(--slate);background:#FBFCFC;min-width:0;}
+  .cform input:focus{outline:2px solid var(--teal);outline-offset:1px;}
+  .ttcard{background:#fff;border:1px solid #E3E9EB;border-radius:12px;padding:14px 16px;}
+  .tthead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:9px;}
+  .tthead .lbl{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1.4px;color:var(--soft);}
+  .vvotes{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px;border-top:1px dashed #EEF2F3;padding-top:9px;}
+  .vtally{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--soft);line-height:1.5;min-width:0;}
+  .vtally b{color:var(--navy);font-size:12px;}
+  .vwho{display:block;font-size:9px;color:var(--soft);overflow:hidden;text-overflow:ellipsis;}
+
+  .mapfilters{padding:11px 12px 9px;border-bottom:1px solid #EEF2F3;}
+  .frow{display:flex;gap:6px;flex-wrap:wrap;}
+  .frow.sub{margin-top:7px;padding-top:7px;border-top:1px dashed #EEF2F3;}
+  .fchip{padding:6px 11px;border-radius:999px;border:1px solid #D5DCDE;font-size:11px;cursor:pointer;
+    background:#FBFCFC;color:var(--soft);user-select:none;font-family:'IBM Plex Mono',monospace;letter-spacing:.6px;transition:all .12s;}
+  .fchip:hover{border-color:var(--teal);color:var(--teal);}
+  .fchip.day{font-size:10px;padding:5px 9px;}
+  .fchip.on{color:#fff;border-color:transparent;}
+  .fchip.on[data-c="all"]{background:var(--navy);}
+  .fchip.on[data-c="rome"]{background:var(--rome);}
+  .fchip.on[data-c="florence"]{background:var(--florence);}
+  .fchip.on[data-c="chianti"]{background:var(--chianti);}
+  .fchip.on[data-c="bologna"]{background:var(--bologna);}
+  .fchip.on[data-c="venice"]{background:var(--venice);}
+  .fchip.day.on{background:var(--navy);}
+  .numwrap{display:flex;flex-direction:column;align-items:center;pointer-events:none;}
+  .numpin{width:27px;height:27px;border-radius:50%;color:#fff;font-weight:700;font-size:13px;
+    display:flex;align-items:center;justify-content:center;border:2.5px solid #fff;
+    box-shadow:0 2px 8px rgba(16,23,30,.4);font-family:'IBM Plex Sans',sans-serif;pointer-events:auto;}
+  .numpin.alt{font-size:12px;opacity:.75;}
+  .timetag{margin-top:4px;background:var(--board);color:var(--cream);font-family:'IBM Plex Mono',monospace;
+    font-size:9px;letter-spacing:.4px;padding:2px 5px;border-radius:4px;white-space:nowrap;
+    box-shadow:0 1px 4px rgba(16,23,30,.3);pointer-events:auto;}
+  .hubpin{width:27px;height:27px;border-radius:7px;background:var(--board);color:var(--amber);
+    font-size:14px;display:flex;align-items:center;justify-content:center;border:2.5px solid #fff;
+    box-shadow:0 2px 8px rgba(16,23,30,.45);pointer-events:auto;}
+  .hubpin.sm{width:24px;height:24px;font-size:12px;border-width:2px;}
+  .pdot.hubdot{width:22px;height:22px;border-radius:6px;background:var(--board);color:var(--amber);
+    font-size:11px;display:flex;align-items:center;justify-content:center;}
+  .timetag.b-hub{background:var(--amber);color:#2A1B04;font-weight:600;}
+  .fchip.hubchip.on{background:var(--board);border-color:var(--board);color:var(--amber);}
+  .pin.hub{background:#F7FAFA;}
+  .pnum.hubnum{border-radius:6px;background:var(--board);color:var(--amber);font-size:12px;}
+  .timetag.b-early,.timetag.b-morning{background:#2C3A2F;color:#DCEBD8;}
+  .timetag.b-midday{background:var(--board);color:var(--cream);}
+  .timetag.b-golden{background:#7A4A17;color:#FFE2B8;}
+  .timetag.b-evening{background:#2A2740;color:#DAD5F2;}
+  .timetag.b-flex{background:#3A4148;color:#D7DEE2;}
+  .bandbadge{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.7px;
+    padding:2px 5px;border-radius:3px;margin-right:5px;vertical-align:middle;}
+  .bandbadge.b-early,.bandbadge.b-morning{background:#E6F0E3;color:#3D5A38;}
+  .bandbadge.b-midday{background:#EDF1F2;color:#4A5B66;}
+  .bandbadge.b-golden{background:#FBEBD6;color:#8A5A1C;}
+  .bandbadge.b-evening{background:#E7E5F3;color:#4A4470;}
+  .bandbadge.b-flex{background:#EEF2F3;color:var(--soft);}
+  .plhead{padding:9px 14px;background:#F7FAFA;border-bottom:1px solid #EEF2F3;
+    font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.6px;color:var(--soft);}
+  .pnum{width:22px;height:22px;border-radius:50%;color:#fff;font-size:11.5px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
+  .pnum.alt{opacity:.7;font-size:11px;}
+  .leg{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--soft);
+    padding:2px 14px 2px 40px;background:#FBFCFC;}
+  .pinlist{border-top:1px solid #EEF2F3;max-height:280px;overflow-y:auto;}
+  .pin{display:grid;grid-template-columns:22px 1fr auto;gap:11px;align-items:center;padding:9px 14px;border-bottom:1px solid #F4F7F7;}
+  .pin:last-child{border-bottom:none;}
+  .pin.hotel{background:#F7FAFA;}
+  .pdot{width:10px;height:10px;border-radius:50%;}
+  .pnm{font-size:12.5px;font-weight:600;color:var(--navy);}
+  .pdy{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--soft);margin-top:2px;}
+  .pin a{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--teal);text-decoration:none;
+    border:1px solid #CFDBD8;border-radius:6px;padding:5px 8px;white-space:nowrap;}
+  .pin a:hover{background:#F0F5F4;}
+  .mapwrap{background:#fff;border:1px solid #E3E9EB;border-radius:12px;overflow:hidden;}
+  #map{height:380px;width:100%;background:#DCE6E4;}
+  @media(max-width:560px){#map{height:300px;}}
+  .mapfallback{display:none;padding:16px;font-size:12.5px;color:var(--soft);line-height:1.6;}
+  .mapfallback.show{display:block;}
+  .leaflet-popup-content{font-family:'IBM Plex Sans',sans-serif;font-size:12.5px;line-height:1.5;margin:10px 12px;}
+  .leaflet-popup-content b{font-family:'Big Shoulders Display',sans-serif;font-size:15px;}
+
+  .vgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;}
+  @media(max-width:900px){.vgrid{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:520px){.vgrid{grid-template-columns:1fr;}}
+  .vcard{background:#fff;border:1px solid #E3E9EB;border-radius:12px;padding:14px;cursor:pointer;transition:all .15s;border-top:4px solid #D5DCDE;}
+  .vcard:hover{box-shadow:0 3px 12px rgba(24,36,48,.09);}
+  .vcard.on{box-shadow:0 4px 16px rgba(24,36,48,.14);}
+  .vcard.v-balanced.on{border-top-color:var(--teal);}
+  .vcard.v-experiences.on{border-top-color:var(--chianti);}
+  .vcard.v-food.on{border-top-color:var(--bologna);}
+  .vcard.v-romantic.on{border-top-color:var(--rome);}
+  .vtop{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .vname{font-family:'Big Shoulders Display',sans-serif;font-size:17px;color:var(--navy);letter-spacing:.5px;}
+  .vpill{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:1.2px;background:var(--navy);color:var(--cream);padding:3px 7px;border-radius:4px;}
+  .vtag{font-size:11.5px;color:var(--soft);margin:3px 0 8px;font-style:italic;}
+  .vblurb{font-size:12px;line-height:1.55;color:var(--slate);}
+  .vdelta{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--teal);margin-top:9px;}
+  .tierrow{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:10px;}
+  .tchip{padding:6px 11px;border-radius:999px;border:1px solid #D5DCDE;font-size:11px;cursor:pointer;
+    background:#FBFCFC;color:var(--soft);font-family:'IBM Plex Mono',monospace;letter-spacing:.4px;user-select:none;transition:all .12s;}
+  .tchip:hover{border-color:var(--teal);color:var(--teal);}
+  .tchip.on{background:var(--navy);border-color:var(--navy);color:var(--cream);}
+  .tnote{font-size:10.5px;color:var(--soft);font-style:italic;margin-left:2px;}
+  .vcost{font-family:'Big Shoulders Display',sans-serif;font-size:22px;color:var(--navy);margin-top:10px;letter-spacing:.5px;}
+  .vcost span{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--soft);letter-spacing:1px;margin-left:5px;}
+  .costbreak{background:#fff;border:1px solid #E3E9EB;border-radius:12px;padding:14px 16px;margin-top:11px;}
+  .cb-row{display:flex;justify-content:space-between;gap:12px;font-size:12.5px;padding:6px 0;border-bottom:1px dashed #EEF2F3;}
+  .cb-row span:last-child{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--navy);white-space:nowrap;}
+  .cb-row.total{border-bottom:none;font-weight:600;color:var(--navy);padding-top:9px;}
+  .cb-row.total span:last-child{color:var(--teal);font-size:14px;}
+  .cb-note{font-size:11px;color:var(--soft);line-height:1.55;margin-top:9px;font-style:italic;}
+  .scards{display:grid;grid-template-columns:1fr;gap:10px;}
+  .scard{background:#fff;border:1px solid #E3E9EB;border-radius:12px;padding:14px 16px;}
+  .scard h4{font-family:'Big Shoulders Display',sans-serif;font-size:17px;margin:0;color:var(--navy);}
+  .ssub{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--soft);margin:3px 0 0;}
+  .shead{margin-bottom:12px;}
+  .scols{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:680px){.scols{grid-template-columns:1fr;gap:18px;}}
+  .scol{min-width:0;}
+  .scol.sugg{border-left:1px solid #EEF2F3;padding-left:16px;}
+  @media(max-width:680px){.scol.sugg{border-left:none;padding-left:0;border-top:1px dashed #E3E9EB;padding-top:14px;}}
+  .scol-h{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1.4px;color:var(--soft);margin-bottom:9px;}
+  .sg-lbl{font-size:11.5px;font-weight:600;color:var(--navy);margin:12px 0 6px;}
+  .sg-lbl:first-of-type{margin-top:0;}
+  .area{padding:7px 9px;border-radius:8px;background:#FBFCFC;border:1px solid #EEF2F3;margin-bottom:6px;}
+  .area.avoid{background:#FDF6F5;border-color:#F3E0DE;}
+  .area-n{font-size:12.5px;font-weight:600;color:var(--navy);}
+  .area.avoid .area-n{color:#9A4640;}
+  .area-d{font-size:11.5px;color:var(--soft);line-height:1.5;margin-top:2px;}
+  .keys{display:flex;flex-direction:column;gap:5px;}
+  .key{text-align:left;background:#FBFCFC;border:1px solid #D5DCDE;border-radius:7px;padding:7px 9px;font-size:11.5px;
+       color:var(--slate);cursor:pointer;font-family:'IBM Plex Sans',sans-serif;transition:all .12s;}
+  .key:hover{border-color:var(--teal);color:var(--teal);}
+  .key.copied{background:var(--teal);border-color:var(--teal);color:#fff;}
+  .sg-foot{font-size:10.5px;color:var(--soft);margin-top:8px;font-style:italic;line-height:1.5;}
+  .sbtns{display:flex;gap:7px;flex-wrap:wrap;}
+  .sres{display:flex;flex-direction:column;gap:8px;margin-top:11px;}
+  .opt{display:grid;grid-template-columns:1fr auto auto;gap:11px;align-items:center;background:#FBFCFC;border:1px solid #E3E9EB;border-radius:9px;padding:10px 12px;}
+  .opt .on{font-weight:600;font-size:13px;} .opt .om{font-size:11.5px;color:var(--soft);margin-top:2px;}
+  .opt .op{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--navy);white-space:nowrap;}
+  .st{padding:10px 12px;border-radius:9px;font-size:12.5px;line-height:1.5;display:flex;gap:9px;align-items:center;}
+  .st.load{background:#F0F5F4;border:1px solid #D7E4E1;color:#3A5A53;}
+  .st.err{background:#FDF2F1;border:1px solid #F2D4D1;color:#7C3833;}
+  .st button{margin-left:auto;}
+  .spin{width:13px;height:13px;border:2px solid #B7CCC7;border-top-color:var(--teal);border-radius:50%;animation:sp .8s linear infinite;flex:0 0 auto;}
+  @keyframes sp{to{transform:rotate(360deg);}}
+
+  .tr{background:#fff;border:1px solid #E3E9EB;border-radius:12px;padding:14px 16px;margin-bottom:10px;border-left:4px solid var(--amber);}
+  .tr.past{opacity:.5;}
+  .tr-head{display:flex;gap:14px;align-items:flex-start;margin-bottom:10px;}
+  .tr-when{background:var(--board);border-radius:9px;padding:8px 11px;text-align:center;flex:0 0 auto;min-width:76px;}
+  .tr-leave{font-family:'Big Shoulders Display',sans-serif;font-size:21px;color:var(--amber);line-height:1;}
+  .tr-leavelbl{font-family:'IBM Plex Mono',monospace;font-size:7.5px;letter-spacing:1.3px;color:#7A8A96;margin-top:3px;}
+  .tr-main{min-width:0;}
+  .tr-tag{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1.3px;color:var(--soft);}
+  .tr-route{font-family:'Big Shoulders Display',sans-serif;font-size:19px;color:var(--navy);margin:2px 0 1px;}
+  .tr-svc{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--teal);}
+  .tr-station{background:#F0F5F4;border:1px solid #D7E4E1;border-radius:8px;padding:8px 11px;font-size:13px;
+    font-weight:600;color:#24504A;margin-bottom:7px;letter-spacing:.3px;}
+  .tr-wrong{background:#FDF2F1;border:1px solid #F2D4D1;border-radius:8px;padding:8px 11px;font-size:11.5px;
+    color:#7C3833;line-height:1.55;margin-bottom:9px;}
+  .tr-how{margin-bottom:9px;}
+  .tr-opt{font-size:12.5px;color:var(--slate);line-height:1.5;padding:4px 0 4px 14px;position:relative;}
+  .tr-opt::before{content:"→";position:absolute;left:0;color:var(--teal);font-size:11px;}
+  .tr-buf,.tr-miss{font-size:11.5px;line-height:1.55;color:#4A5B66;padding:7px 0 0;border-top:1px dashed #EEF2F3;}
+  .tr-buf b,.tr-miss b{color:var(--navy);}
+  .stays{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  @media(max-width:760px){.stays{grid-template-columns:1fr;}}
+  .stay{background:#fff;border:1px solid #E3E9EB;border-radius:12px;padding:13px;border-top:3px solid #D5DCDE;}
+  .stay.set{border-top-color:var(--teal);}
+  .stay-h{margin-bottom:9px;}
+  .stay-city{font-family:'Big Shoulders Display',sans-serif;font-size:17px;color:var(--navy);}
+  .stay-meta{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--soft);margin-top:2px;}
+  .stay input{width:100%;border:1px solid #D5DCDE;border-radius:8px;padding:8px 10px;font-size:12.5px;
+    font-family:'IBM Plex Sans',sans-serif;color:var(--slate);background:#FBFCFC;margin-bottom:6px;}
+  .stay input:focus{outline:2px solid var(--teal);outline-offset:1px;}
+  .stay input.bad{border-color:var(--red);background:#FDF6F5;}
+  .stay-st{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--soft);}
+  .stay.set .stay-st{color:var(--teal);}
+  .staytip{font-size:11.5px;color:var(--soft);line-height:1.55;margin-top:9px;font-style:italic;}
+  .hrow{background:#F0F5F4;border:1px solid #D7E4E1;border-radius:7px;padding:6px 9px;font-size:11.5px;
+    color:#2F5850;margin:0 0 8px;font-weight:600;}
+  .hrow.empty{background:#FBFCFC;border-color:#EEF2F3;color:var(--soft);font-weight:400;font-style:italic;}
+  .hpin{width:26px;height:26px;border-radius:50%;background:var(--navy);color:var(--amber);
+    display:flex;align-items:center;justify-content:center;font-size:15px;border:2.5px solid #fff;
+    box-shadow:0 2px 7px rgba(0,0,0,.35);}
+  .budget-card{background:var(--board);border-radius:14px;padding:17px;}
+  .bh{display:flex;justify-content:space-between;align-items:center;margin-bottom:13px;flex-wrap:wrap;gap:8px;}
+  .bh .lb{font-family:'Big Shoulders Display',sans-serif;color:var(--cream);font-size:17px;letter-spacing:1px;}
+  .bh input{background:#1B2530;border:1px solid #2B3947;color:var(--cream);border-radius:8px;padding:8px 10px;font-family:'IBM Plex Mono',monospace;font-size:13px;width:120px;}
+  .burn{background:#1C2731;border-radius:8px;height:13px;overflow:hidden;margin-bottom:7px;}
+  .burn-fill{height:100%;background:var(--teal);transition:width .4s ease;border-radius:8px;}
+  .burn-fill.hot{background:var(--amber);} .burn-fill.over{background:var(--red);}
+  .bl{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--cream);display:flex;justify-content:space-between;margin-bottom:14px;}
+  .sf{display:grid;grid-template-columns:1fr 110px 88px;gap:7px;margin-bottom:11px;}
+  .sf input{background:#1B2530;border:1px solid #2B3947;color:var(--cream);border-radius:8px;padding:9px 10px;font-size:13px;}
+  .sf button{background:var(--amber);border:none;border-radius:8px;font-weight:600;color:#2A1B04;cursor:pointer;font-size:13px;}
+  @media(max-width:520px){.sf{grid-template-columns:1fr 88px;} .sf button{grid-column:1/-1;padding:10px;}}
+  .spend-log{max-height:210px;overflow-y:auto;}
+  .sp{display:flex;justify-content:space-between;gap:10px;padding:7px 2px;border-bottom:1px solid #1C2731;font-size:12.5px;color:#B8C2CA;align-items:center;}
+  .spr{display:flex;gap:8px;align-items:center;}
+  .sp .amt{font-family:'IBM Plex Mono',monospace;color:var(--cream);}
+  .sp button{background:none;border:none;color:#5B6B78;cursor:pointer;font-size:14px;}
+  .sp button:hover{color:var(--red);}
+
+  .ref-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+  @media(max-width:600px){.ref-grid{grid-template-columns:1fr;}}
+  .ref{background:#fff;border:1px solid #E3E9EB;border-radius:12px;padding:15px;}
+  .ref h4{font-family:'Big Shoulders Display',sans-serif;font-size:15px;margin:0 0 9px;color:var(--navy);letter-spacing:.4px;}
+  .ref .line{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;padding:5px 0;border-bottom:1px dashed #EEF2F3;}
+  .ref .line:last-child{border-bottom:none;}
+  .ref .line span:last-child{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--teal);white-space:nowrap;}
+  .warn{background:#FDF2F1;border:1px solid #F2D4D1;border-radius:8px;padding:10px 12px;font-size:11.5px;color:#7C3833;margin-top:9px;line-height:1.5;}
+
+  #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(80px);background:var(--board);color:var(--cream);
+         font-family:'IBM Plex Mono',monospace;font-size:12px;padding:11px 16px;border-radius:999px;opacity:0;transition:all .3s ease;z-index:9999;box-shadow:0 6px 20px rgba(0,0,0,.3);}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  body[data-mode="travel"] .planonly{display:none;}
+  footer{text-align:center;font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:#A8B4BC;margin-top:36px;letter-spacing:1px;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="ticket">
+    <div class="ticket-top">
+      <h1>ITALIA<small>OCT 1–11 2026 · ROMA · FIRENZE · CHIANTI · BOLOGNA · VENEZIA</small></h1>
+      <div class="toggles">
+        <div class="tg">
+          <button class="modebtn" data-m="auto" onclick="setMode('auto')">AUTO</button>
+          <button class="modebtn" data-m="plan" onclick="setMode('plan')">PLAN</button>
+          <button class="modebtn" data-m="travel" onclick="setMode('travel')">TRAVEL</button>
+        </div>
+        <div class="tg">
+          <button class="curbtn" data-c="CAD" onclick="setCur('CAD')">CAD</button>
+          <button class="curbtn" data-c="EUR" onclick="setCur('EUR')">EUR</button>
+        </div>
+      </div>
+    </div>
+    <div class="flights">
+      <div class="flight">
+        <div class="fno">AC 890 · OUT · THU OCT 1</div>
+        <div class="lr">YYZ <span class="ar">✈</span> FCO</div>
+        <div class="mt">Dep ~20:00 EDT · Arr ~10:20+1 CEST<br>~8h35m · Pearson T1 → Fiumicino T3</div>
+      </div>
+      <div class="flight">
+        <div class="fno">AC 817 · HOME · SUN OCT 11</div>
+        <div class="lr">VCE <span class="ar">✈</span> YYZ</div>
+        <div class="mt">Dep 12:20 CEST · Arr ~15:55 EDT<br>~9h35m · Arrive Pearson T1</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="banner" id="envBanner"><b>Note:</b> live hotel and tour search only works while this is open <b>inside Claude</b>. Everything else — plan, map, checklist, budget — works anywhere.</div>
+
+  <div class="strip">
+    <div class="stat"><div class="num" id="daysToGo">—</div><div class="lbl">Days to go</div></div>
+    <div class="stat"><div class="num">9</div><div class="lbl">Nights</div></div>
+    <div class="stat"><div class="num" id="urgentCount">0</div><div class="lbl">Urgent</div></div>
+    <div class="stat"><div class="num" id="bookedCount">—</div><div class="lbl">Booked</div></div>
+  </div>
+
+  <h2 class="sec">Which trip</h2>
+  <p class="secsub">Same flights, same cities. Pick an emphasis — the plan, checklist and costs all follow.</p>
+  <div class="tierrow" id="tierRow"></div>
+  <div class="vgrid" id="variants"></div>
+  <div class="costbreak" id="costBreak"></div>
+
+  <h2 class="sec">Trip talk</h2>
+  <p class="secsub">Shared with everyone who has this link — comments and votes are visible to the whole group. Keep booking refs in the checklist vault, not here.</p>
+  <div class="ttcard" id="tripTalk"></div>
+
+  <div class="planonly">
+    <h2 class="sec">To book</h2>
+    <p class="secsub">Sorted by urgency against today's date. Tap the text to store times, codes and meeting points.</p>
+    <div id="checklist"></div>
+
+    <h2 class="sec">Live search</h2>
+    <p class="secsub">Booking something here ticks it off and logs the cost automatically.</p>
+    <div class="scards" id="searchCards"></div>
+  </div>
+
+  <h2 class="sec">The plan</h2>
+  <p class="secsub" id="daysSub"></p>
+  <div id="days"></div>
+
+  <h2 class="sec">Map</h2>
+  <p class="secsub">Tap a day above to focus it here — or tap a pin to jump to its day.</p>
+  <div class="mapwrap">
+    <div class="mapfilters" id="mapFilters"></div>
+    <div id="map"></div>
+    <div class="mapfallback" id="mapFallback">The map couldn't load — the list below still works, and every stop opens in your phone's maps app.</div>
+    <div class="pinlist" id="pinList"></div>
+  </div>
+
+  <h2 class="sec">Don't miss it</h2>
+  <p class="secsub">Every moment you have to be somewhere on time — which station, how to get there, and what happens if it goes wrong.</p>
+  <div id="transit"></div>
+
+  <h2 class="sec">Where you sleep</h2>
+  <p class="secsub">Add each hotel once and it pins to every night there — with how far the day's stops are.</p>
+  <div class="stays" id="stays"></div>
+  <p class="staytip">To get coordinates: find the hotel in Google Maps, right-click the pin → the top item is the lat/lng — click to copy. Or just paste the map link.</p>
+
+  <h2 class="sec">Budget</h2>
+  <p class="secsub">Stored in euros, shown in your chosen currency. Bookings log themselves.</p>
+  <div class="budget-card">
+    <div class="bh"><div class="lb">TRIP LEDGER</div><input type="number" id="budgetInput" placeholder="Budget"></div>
+    <div class="burn"><div class="burn-fill" id="burnFill" style="width:0%"></div></div>
+    <div class="bl"><span id="spentLbl">0 spent</span><span id="leftLbl">set a budget →</span></div>
+    <div class="sf">
+      <input type="text" id="spendDesc" placeholder="What was it?">
+      <input type="number" id="spendAmt" placeholder="$">
+      <button onclick="addSpend()">Log it</button>
+    </div>
+    <div class="spend-log" id="spendLog"></div>
+  </div>
+
+  <h2 class="sec">Quick reference</h2>
+  <div class="ref-grid" id="refGrid"></div>
+
+  <footer>ROMA · FIRENZE · CHIANTI · BOLOGNA · VENEZIA — BUON VIAGGIO</footer>
+</div>
+
+<script>
+// ============ TRIP DATA (single source of truth) ============
+// All money stored in EUR internally; displayed in the active currency.
+const RATE_CAD = 1.61;
+
+const CHECKLIST = [
+  {id:'flights',    txt:'Flights — AC890 out Oct 1, AC817 home Oct 11', due:'2026-07-01', vault:['Seats','Booking ref']},
+  {id:'hotels_rome',txt:'Hotel Rome ×3 nights (Centro Storico or Monti)', due:'2026-08-10', vault:['Address','Check-in','Ref']},
+  {id:'hotels_flo', txt:'Hotel Florence ×3 nights (Oltrarno)',            due:'2026-08-10', vault:['Address','Check-in','Ref']},
+  {id:'hotels_ven', txt:'Hotel Venice ×3 nights (Cannaregio)',            due:'2026-08-10', vault:['Address','Check-in','Ref']},
+  {id:'vatican',    txt:'Vatican Museums — Sat Oct 3, 08:00 (closed Sundays)', due:'2026-08-15', vault:['Entry time','Ref','Entrance']},
+  {id:'colosseum',  txt:'Colosseum + Forum combo — Sun Oct 4 ⚠ free-entry first Sunday: verify timed tickets exist, or shift to Mon Oct 5 first thing', due:'2026-08-15', vault:['Entry time','Ref','Gate']},
+  {id:'trastevere', txt:'Trastevere food tour — Sun Oct 4 evening',            due:'2026-08-20', vault:['Start time','Meeting point','Ref']},
+  {id:'chianti',    txt:'Chianti sunset wine tour — Wed Oct 7 afternoon',      due:'2026-08-20', vault:['Pickup time','Pickup point','Ref']},
+  {id:'cicchetti',  txt:'Venice cicchetti tour — Fri Oct 9 evening',           due:'2026-08-20', vault:['Start time','Meeting point','Ref']},
+  {id:'trains',     txt:'Trains ×3 — Rome→Florence Oct 5 · Florence→Bologna + Bologna→Venice Oct 8', due:'2026-08-25', vault:['Dep times','Platforms','Ref']},
+  {id:'uffizi',     txt:'Uffizi — Tue Oct 6, 08:15 (closed Mondays)',          due:'2026-09-05', vault:['Entry time','Ref','Door']},
+  {id:'etias',      txt:'Check ETIAS on travel.gc.ca — apply if live',         due:'2026-09-10', vault:['Status','Ref']},
+  {id:'duomo',      txt:'Optional: Duomo dome climb (Brunelleschi Pass)',      due:'2026-09-15', vault:['Slot time','Ref']},
+];
+
+// cost: [lowEUR, highEUR] or [exactEUR]; suffix optional
+const DAYS = [
+  {date:'2026-10-01', city:'transit', tag:'IN TRANSIT', title:'Thu Oct 1 — Fly out', slots:[
+    ['17:00','<b>Leave for Pearson T1.</b> International — airside 2.5–3h before.',null],
+    ['~20:00','<b>AC890 departs.</b> Overnight to Rome. Eat, hydrate, try to sleep.',null],
+  ], planB:'Delayed or cancelled? Air Canada rebooks at the gate — but note your Rome hotel check-in, and message them if you land a day late.'},
+
+  {date:'2026-10-02', city:'rome', tag:'ROMA', title:'Fri Oct 2 — Land + gentle loop', slots:[
+    ['10:20','<b>Land FCO.</b> Non-EU line → EES biometric kiosk. Patience.',null],
+    ['11:45','ATM in the terminal — decline the CAD conversion offer. Follow "Treni".',null],
+    ['12:00','<b>Leonardo Express → Termini</b>, drop bags at the hotel.',[14]],
+    ['13:30','<b>Late lunch, no research.</b> Anywhere off the main drag. Carbonara + house wine.',[15,20]],
+    ['15:00','<b>Trevi → Pantheon → Piazza Navona.</b> Free, flat, unfailable.',null],
+    ['19:30','Dinner on a side street off Navona — never on the piazza.',[25,35]],
+  ], tip:'<b>Jet-lag rule:</b> no napping. Stay up till 22:00 local. A shower beats caffeine.',
+     planB:'Raining or EES ate your afternoon? Skip the walking loop. Pantheon (open till 19:00) plus a two-hour café sit nearby does the same job. Nothing today is bookable, so nothing is lost.'},
+
+  {date:'2026-10-03', city:'rome', tag:'ROMA', title:'Sat Oct 3 — Vatican + Aventine sunset', slots:[
+    ['08:00','<b>Vatican Museums</b> (pre-booked). Raphael Rooms → Sistine. 3–4 hrs.',[25]],
+    ['12:30','Sistine shortcut into <b>St. Peter\'s Basilica</b>. Free.',null],
+    ['14:00','<b>Nothing scheduled.</b> Lunch, then back to the room.',null],
+    ['18:00','<b>Giardino degli Aranci</b> — sunset over Rome, open till 21:00.',null],
+    ['18:30','<b>Aventine Keyhole</b>, 2 min away — St. Peter\'s dome framed in a door.',null],
+  ], tip:'<b>Why Saturday:</b> the Museums are closed Sundays, and Oct 4 is a Sunday.',
+     planB:'Rain doesn\'t touch the morning — it\'s all indoors. For the evening, swap the Aventine for Castel Sant\'Angelo\'s covered ramparts, or just move dinner earlier.'},
+
+  {date:'2026-10-04', city:'rome', tag:'ROMA', title:'Sun Oct 4 — Ancient city + food tour', slots:[
+    ['08:30','<b>Colosseum</b>, first entry (pre-booked combo).',[18]],
+    ['10:30','<b>Forum + Palatine</b>, same ticket. Bring photo ID. Zero shade.',null],
+    ['13:30','Lunch in <b>Monti</b>, straight up from the Forum. Then rest.',[15,20]],
+    ['19:00','<b>Twilight Trastevere food tour</b> (pre-booked) — this is dinner.',[90,110]],
+  ], tip:'<b>⚠ First Sunday of the month:</b> Oct 4 is <i>Domenica al Museo</i> — state sites including the Colosseum, Forum and Palatine are free, which usually means no advance timed tickets and long walk-up queues. Before booking, check whether timed entry is actually on sale for this date. If not: queue very early, or swap the Colosseum to Monday Oct 5 first thing and take a later train to Florence.',
+     planB:'Heavy rain over the Forum is genuinely miserable — it\'s open ruins. Move to the Capitoline Museums (indoors, overlooks the Forum) or Palazzo Massimo. The food tour runs rain or shine.'},
+
+  {date:'2026-10-05', city:'florence', tag:'FIRENZE', title:'Mon Oct 5 — Train + golden hour', slots:[
+    ['09:30','<b>Frecciarossa Termini → Firenze SMN</b> (~1h20). Bags to Oltrarno.',[15,30]],
+    ['13:00','<b>Duomo.</b> Monday hours 10:15–15:45. Cathedral free.',null],
+    ['17:30','<b>Piazzale Michelangelo</b> 45 min before sunset. Bottle + two cups on the way up.',null],
+    ['20:00','Dinner in <b>Santo Spirito</b>. Bistecca if you\'re hungry (sold by weight).',[25,45]],
+  ], tip:'<b>Note:</b> the Uffizi is closed Mondays — that\'s why it\'s tomorrow.',
+     planB:'No sunset in the rain. Mercato Centrale\'s upstairs food hall is the warm, loud, happy alternative — then an Oltrarno wine bar. Piazzale keeps till tomorrow evening.'},
+
+  {date:'2026-10-06', city:'florence', tag:'FIRENZE', title:'Tue Oct 6 — Uffizi, then drift', slots:[
+    ['08:15','<b>Uffizi</b>, first slot (pre-booked). 2–3 hrs, then done with museums.',[25]],
+    ['12:00','<b>Ponte Vecchio</b> — two minutes from the exit. Cross into Oltrarno.',null],
+    ['13:00','All\'Antico Vinaio schiacciata (queue moves fast) or a long sit-down lunch.',[7,25]],
+    ['16:00','<b>Nothing.</b> Artisan workshops, aperitivo in Santo Spirito.',null],
+  ], planB:'Morning is indoors regardless. If the afternoon washes out: Palazzo Pitti and the Boboli greenhouses, or the Scuola del Cuoio leather school behind Santa Croce.'},
+
+  {date:'2026-10-07', city:'chianti', tag:'CHIANTI', title:'Wed Oct 7 — Wine day', slots:[
+    ['am','<b>Slow morning.</b> Market, coffee sitting down, no alarm. This day was saved on purpose.',null],
+    ['15:00','<b>Chianti sunset tour</b> (pre-booked). Two wineries, tastings, vineyard walk.',[75,95]],
+    ['18:30','Sunset over the vines, usually with a stop in a village like Greve.',null],
+    ['20:30','Back in Florence. Half-fed from tastings — a light bite is plenty.',[10,20]],
+  ], tip:'<b>Book early:</b> October is harvest season — prettiest time in Chianti, and the busiest.',
+     planB:'Cellars are indoors, so tours run in rain — you just lose the sunset. If it\'s cancelled outright: an Oltrarno enoteca crawl (Le Volpi e l\'Uva, Il Santino) delivers the same wine, none of the hills.'},
+
+  {date:'2026-10-08', city:'bologna', tag:'BOLOGNA', title:'Thu Oct 8 — Stopover → Venice', slots:[
+    ['09:00','Check out of Florence, walk to Santa Maria Novella.',null],
+    ['09:30','<b>Frecciarossa → Bologna</b> (35 min). Book as a separate ticket from the Venice leg.',[10,15]],
+    ['10:15','<b>Bags into KiPoint left-luggage</b> at Bologna Centrale. Non-negotiable.',[6,8],'/bag'],
+    ['10:45','Portico walk to <b>Piazza Maggiore</b>, San Petronio, Neptune.',null],
+    ['12:00','<b>Quadrilatero.</b> Mortadella + lambrusco standing at a deli counter.',[10,15]],
+    ['13:00','Sit down for <b>tagliatelle al ragù</b> and <b>tortellini in brodo</b> — both born here.',[15,25]],
+    ['15:00','Coffee in Piazza Santo Stefano, slow loop back under the porticoes.',[3,6]],
+    ['16:30','Collect bags, <b>train to Venezia Santa Lucia</b> (~1h30).',[15,25]],
+    ['18:30','Out of the station onto the <b>Grand Canal</b> at golden hour. Walk to Cannaregio.',null],
+  ], tip:'<b>No detour:</b> Bologna sits directly on the Florence–Venice line.',
+     planB:'Bologna is 40km of covered porticoes — this is the single best rain day of the trip. Do nothing differently. If trains are disrupted, skip Bologna and ride straight through; you lose lunch, not a booking.'},
+
+  {date:'2026-10-09', city:'venice', tag:'VENEZIA', title:'Fri Oct 9 — Rialto, dusk, cicchetti', slots:[
+    ['10:00','<b>Rialto Bridge</b> + market backstreets, before the day-tripper wave.',null],
+    ['16:00','<b>San Giorgio Maggiore</b> bell tower — elevator, tiny queue, cash only.',[8]],
+    ['18:00','<b>Piazza San Marco at dusk</b>, café orchestras on.',null],
+    ['19:30','<b>Cicchetti tour</b> (pre-booked) — bacari crawl, traghetto crossing included.',[95,115]],
+  ], tip:'<b>October bonus:</b> no Venice access fee this time of year.',
+     planB:'Acqua alta is possible in October — check the tide forecast app "Hi!Tide Venice". If San Marco floods, the raised walkways still work; otherwise swap the tower for the Accademia or Peggy Guggenheim. The tour runs regardless.'},
+
+  {date:'2026-10-10', city:'venice', tag:'VENEZIA', title:'Sat Oct 10 — Islands or drift + gondola', slots:[
+    ['09:30','<b>Murano</b> then <b>Burano</b> on a 24h vaporetto pass.',[25]],
+    ['12:30','Lagoon-side lunch on Burano.',[20,30]],
+    ['—','<b>Or skip all of it</b> and drift Dorsoduro + the Zattere. Decide over breakfast.',null],
+    ['18:30','<b>Gondola at dusk.</b> Ask for the quiet back canals.',[90],'/boat'],
+    ['20:30','Last dinner in Cannaregio. Pack tonight.',[30,45]],
+  ], planB:'The lagoon in rain is bleak and the vaporetto is exposed. Skip the islands: Peggy Guggenheim then the Accademia, both indoors and ten minutes apart. Gondoliers have covers but will cancel in real wind.'},
+
+  {date:'2026-10-11', city:'transit', tag:'IN TRANSIT', title:'Sun Oct 11 — Fly home', slots:[
+    ['08:00','Check out. Leave by 8:30 at the latest.',null],
+    ['08:30','<b>Alilaguna or ATVO bus to VCE.</b> Allow ~1 hour.',[10,18]],
+    ['09:45','At the airport for the 12:20 departure. EES exit scan on the way out.',null],
+    ['12:20','<b>AC817 departs.</b> Land Toronto 15:55 the same afternoon.',null],
+  ], planB:'Transport strikes hit Italy periodically and are announced ~10 days ahead. If Alilaguna is out, the ATVO bus from Piazzale Roma runs separately — or a water taxi (~€120) as the expensive certainty.'},
+];
+
+const CITY_COLOR = {rome:'#B0533C', florence:'#7A6C3E', chianti:'#6B4A6E', bologna:'#A8763C', venice:'#3E6478', transit:'#8A98A3'};
+
+const PINS = [
+  {c:'rome', day:'2026-10-02', n:'Trevi Fountain', t:'15:00', lat:41.9009325, lng:12.483313, note:'Free. Toss the coin.'},
+  {c:'rome', day:'2026-10-02', n:'Pantheon', t:'16:30', lat:41.8986108, lng:12.4768729, note:'Open till 19:00 daily.'},
+  {c:'rome', day:'2026-10-02', n:'Piazza Navona', t:'19:30', lat:41.8991633, lng:12.4730742, note:'Dinner on a side street off it.'},
+  {c:'rome', day:'2026-10-03', n:'Vatican Museums', t:'08:00', lat:41.9064878, lng:12.4536413, note:'Pre-booked. CLOSED Sundays.'},
+  {c:'rome', day:'2026-10-03', n:'Giardino degli Aranci', t:'18:00', lat:41.8851338, lng:12.48039, note:'Sunset. Free, till 21:00. Keyhole 2 min away.'},
+  {c:'rome', day:'2026-10-04', n:'Colosseum', t:'08:30', lat:41.8902102, lng:12.4922309, note:'Combo ticket, first slot.'},
+  {c:'rome', day:'2026-10-04', n:'Roman Forum + Palatine', t:'10:30', lat:41.8920906, lng:12.4864378, note:'Same ticket. Bring photo ID.'},
+  {c:'rome', day:'2026-10-04', n:'Monti', t:'13:30', lat:41.8947077, lng:12.4925226, note:'Lunch. Walk up from the Forum.'},
+  {c:'rome', day:'2026-10-04', n:'Trastevere', t:'19:00', lat:41.8848294, lng:12.4704017, note:'Food tour — this is dinner.'},
+  {c:'florence', day:'2026-10-05', n:'Duomo', t:'13:00', lat:43.773145, lng:11.2559602, note:'Mon hours 10:15–15:45.'},
+  {c:'florence', day:'2026-10-05', n:'Piazzale Michelangelo', t:'17:30', lat:43.7629314, lng:11.2650561, note:'45 min before sunset.'},
+  {c:'florence', day:'2026-10-05', n:'Oltrarno / Santo Spirito', t:'20:00', lat:43.7651277, lng:11.250063, note:'Your Florence base.'},
+  {c:'florence', day:'2026-10-06', n:'Uffizi Galleries', t:'08:15', lat:43.7677856, lng:11.2553108, note:'First slot. CLOSED Mondays.'},
+  {c:'florence', day:'2026-10-06', n:'Ponte Vecchio', t:'12:00', lat:43.767925, lng:11.2531435, note:'Two minutes from the Uffizi exit.'},
+  {c:'chianti', day:'2026-10-07', n:'Greve in Chianti', t:'15:00', lat:43.5830644, lng:11.3186815, note:'Sunset wine tour. Someone else drives.'},
+  {c:'bologna', day:'2026-10-08', n:'Piazza Maggiore', t:'10:45', lat:44.493945, lng:11.3432071, note:'Bags in left-luggage first.'},
+  {c:'bologna', day:'2026-10-08', n:'Quadrilatero', t:'12:00', lat:44.4933404, lng:11.3448481, note:'Mortadella, then tagliatelle al ragù.'},
+  {c:'venice', day:'2026-10-09', n:'Rialto Bridge', t:'10:00', lat:45.4379842, lng:12.335898, note:'Morning, before the wave.'},
+  {c:'venice', day:'2026-10-09', n:'San Giorgio Maggiore', by:'boat', t:'16:00', lat:45.4288691, lng:12.3438017, note:'Elevator, tiny queue, cash only.'},
+  {c:'venice', day:'2026-10-09', n:'Piazza San Marco', t:'18:00', lat:45.4341668, lng:12.3384717, note:'At dusk. No access fee in October.'},
+  {c:'venice', day:'2026-10-09', n:'Cannaregio', t:'19:30', lat:45.4439966, lng:12.3285677, note:'Your Venice base.'},
+  {c:'venice', day:'2026-10-10', n:'Murano', by:'boat', t:'09:30', lat:45.4589863, lng:12.3523452, note:'Check for "vetro artistico".'},
+  {c:'venice', day:'2026-10-10', n:'Burano', by:'boat', t:'12:30', lat:45.4853906, lng:12.4166562, note:'Optional — skip and drift instead.'},
+  {c:'venice', day:'2026-10-10', n:'Zattere, Dorsoduro', by:'walk', t:'alt', lat:45.4291584, lng:12.3268, note:'The drift option: sunset promenade.'},
+];
+
+// live-search targets + quick suggestions (areas to stay, keywords to search)
+const SEARCH_CFG = [
+  {city:'Rome, Italy', label:'Rome', inDate:'2026-10-02', outDate:'2026-10-05', nights:3,
+   hotelCheck:'hotels_rome', tourCheck:'trastevere', tourHint:'food tour, Trastevere, evening',
+   areas:[
+     {n:'Monti', d:'Best all-round. Village feel, wine bars, walk to both the Colosseum and Termini — easy luggage days.'},
+     {n:'Centro Storico / Pantheon', d:'Most romantic. Lamplit piazzas at your door. Pricier, and a 20-min haul to Termini with bags.'},
+     {n:'Trastevere', d:'Best dinners, cobblestones. But across the river from your morning anchors.'},
+     {n:'Avoid: blocks right at Termini', d:'Convenient and charmless. Ten minutes further out buys a lot.'},
+   ],
+   keys:['Trastevere food tour evening small group','Vatican Museums early entry skip the line',
+         'Colosseum underground arena floor tour','Testaccio food market tour','Rome private food tour couples']},
+
+  {city:'Florence, Italy', label:'Florence', inDate:'2026-10-05', outDate:'2026-10-08', nights:3,
+   hotelCheck:'hotels_flo', tourCheck:'chianti', tourHint:'Chianti wine tour, sunset, small group',
+   areas:[
+     {n:'Oltrarno / Santo Spirito', d:'Top pick. Quiet at night, artisan workshops, the best aperitivo squares, 10 min to Ponte Vecchio.'},
+     {n:'San Niccolò', d:'Sleepy, under Piazzale Michelangelo. Great if you want the sunset view as your neighbourhood.'},
+     {n:'Santa Croce', d:'Central and lively without the Duomo crowds. Good middle ground.'},
+     {n:'Avoid: right at the Duomo', d:'Noise until late, markup on everything, and you walk through crowds to get anywhere.'},
+   ],
+   keys:['Chianti sunset wine tour small group','Chianti wine safari half day two wineries',
+         'Tuscany wine tasting from Florence afternoon','Florence sunset food and wine walking tour','Brunelleschi Pass dome climb']},
+
+  {city:'Venice, Italy', label:'Venice', inDate:'2026-10-08', outDate:'2026-10-11', nights:3,
+   hotelCheck:'hotels_ven', tourCheck:'cicchetti', tourHint:'cicchetti bacari food and wine tour, evening',
+   areas:[
+     {n:'Cannaregio', d:'Top pick. The local quarter, best bacari, and only ~10 min from Santa Lucia — which matters with suitcases and forty bridges.'},
+     {n:'Dorsoduro', d:'Artsy and calm. Zattere sunsets, Accademia and Guggenheim on your doorstep for a rainy day.'},
+     {n:'San Polo / Santa Croce', d:'Central, next to the Rialto market. Handy but busier by day.'},
+     {n:'Avoid: Mestre', d:'Cheaper, on the mainland, and you lose the entire reason you came — waking up in Venice.'},
+   ],
+   keys:['cicchetti bacari food and wine tour small group','Venice food tour with traghetto crossing',
+         'gondola ride quiet back canals','San Giorgio Maggiore bell tower','Murano Burano half day boat tour']},
+];
+
+// ============ VARIANTS ============
+// Each variant patches the BALANCED base: swaps slots on given days, adds/edits checklist items.
+const VARIANTS = {
+  balanced: {
+    name:'BALANCED', tag:'One anchor a day, empty afternoons',
+    blurb:'The default. Three food-and-wine tours, a Bologna lunch stopover, a full Chianti day, and deliberately unstructured time in between.',
+    delta:0,
+    addChecks:[], dropChecks:[], patch:{}
+  },
+
+  experiences: {
+    name:'EXPERIENCES', tag:'Special access and hands-on, not just looking',
+    blurb:'Same cities, but you do things instead of viewing them: the Colosseum underground, a rowing lesson in Venice, a tower climb in Bologna. Costs your empty afternoons.',
+    delta:310,   // EUR; ~$500 CAD
+    addChecks:[
+      {id:'x_colosseo', txt:'Colosseum UNDERGROUND + Arena Floor tour — Sun Oct 4 (separate ticket)', due:'2026-08-10', vault:['Entry time','Ref','Meeting point']},
+      {id:'x_vatican',  txt:'Vatican EARLY ENTRY (before general opening) — Sat Oct 3', due:'2026-08-10', vault:['Entry time','Ref']},
+      {id:'x_borghese', txt:'Borghese Gallery — timed 2hr slot, Rome free window', due:'2026-08-20', vault:['Slot time','Ref']},
+      {id:'x_accademia',txt:'Accademia (David) — Tue Oct 6 afternoon', due:'2026-09-01', vault:['Entry time','Ref']},
+      {id:'x_voga',     txt:'Voga alla veneta rowing lesson — Venice', due:'2026-08-25', vault:['Time','Meeting point','Ref']},
+      {id:'x_doge',     txt:"Doge's Palace Secret Itineraries tour — Fri Oct 9", due:'2026-08-25', vault:['Time','Ref']},
+    ],
+    dropChecks:['duomo'],
+    addPins:[
+      {c:'rome', day:'2026-10-03', n:'Borghese Gallery', t:'16:00', lat:41.9142061, lng:12.4921538, note:'Timed 2hr slot — Bernini. If yours lands today.'},
+      {c:'rome', day:'2026-10-04', n:'Appian Way + Catacombs', t:'14:30', lat:41.8585968, lng:12.5107496, note:'E-bike the ancient road; burial galleries below.'},
+      {c:'florence', day:'2026-10-06', n:'Accademia (David)', t:'15:00', lat:43.7768208, lng:11.2587443, note:'Booked slot. Bigger than you expect.'},
+      {c:'bologna', day:'2026-10-08', n:'Asinelli Tower', t:'10:45', lat:44.4941442, lng:11.3466346, note:'498 steps, leans harder than Pisa. Book a slot.'},
+      {c:'venice', day:'2026-10-09', n:"Doge's Palace", t:'09:30', lat:45.4337152, lng:12.3403522, note:'Secret Itineraries — guide-only, book ahead.'},
+      {c:'venice', day:'2026-10-10', n:'Voga rowing lesson', by:'boat', t:'09:30', lat:45.4455, lng:12.3357, note:'Row a Venetian boat yourself. ~1.5hrs.'},
+    ],
+    patch:{
+      '2026-10-03':{slots:[
+        ['07:30','<b>Vatican EARLY ENTRY</b> — in before general opening. The Sistine without the crush is a different room.',[60,80]],
+        ['11:30','Sistine shortcut into <b>St. Peter\'s</b>, then the dome climb (551 steps, or lift partway).',[10]],
+        ['16:00','<b>Borghese Gallery</b> if your slot lands today — Bernini\'s marble that looks like flesh. 2hr timed entry.',[15]],
+        ['18:30','<b>Giardino degli Aranci</b> for sunset, Keyhole 2 min away.',null],
+      ], tip:'<b>Early entry</b> is the single best upgrade in Rome. Book direct or via a licensed operator — it is not the same as "skip the line".'},
+      '2026-10-04':{slots:[
+        ['08:30','<b>Colosseum UNDERGROUND + ARENA FLOOR.</b> You walk the hypogeum and stand where gladiators entered. Guide-only.',[24,30]],
+        ['11:00','<b>Forum + Palatine</b> on the same ticket. Bring photo ID.',null],
+        ['14:30','<b>Appian Way e-bike + catacombs.</b> Ancient road, cypresses, underground burial galleries. ~3hrs.',[45,60]],
+        ['19:30','Dinner in Trastevere — you have earned it.',[25,40]],
+      ], tip:'<b>Book the underground early.</b> It has far fewer slots than the standard combo and goes months ahead. <b>⚠ Oct 4 is a free-entry first Sunday</b> — guided underground slots may not run or may sell differently that day. Confirm availability before relying on it; Mon Oct 5 morning is the fallback.'},
+      '2026-10-05':{slots:[
+        ['09:30','<b>Frecciarossa Termini → Firenze SMN</b> (~1h20).',[15,30]],
+        ['13:00','<b>Duomo + DOME CLIMB.</b> 463 steps between Vasari\'s Last Judgement frescoes. Brunelleschi Pass.',[30]],
+        ['17:30','<b>Piazzale Michelangelo</b> 45 min before sunset.',null],
+        ['20:00','Dinner in Santo Spirito.',[25,45]],
+      ]},
+      '2026-10-06':{slots:[
+        ['08:15','<b>Uffizi</b>, first slot.',[25]],
+        ['12:00','Ponte Vecchio, lunch in Oltrarno.',[7,25]],
+        ['15:00','<b>Accademia — David.</b> Booked slot. He is genuinely bigger than you expect.',[16]],
+        ['18:00','Aperitivo in Santo Spirito.',[8,16]],
+      ]},
+      '2026-10-07':{slots:[
+        ['am','Slow Florence morning.',null],
+        ['13:00','<b>Chianti with a COOKING CLASS</b> at the winery — or a Vespa / classic-car tour through the vines instead of a minibus.',[110,150]],
+        ['18:30','Sunset over the vineyards.',null],
+        ['21:00','Back in Florence.',[10,20]],
+      ], tip:'<b>Vespa option:</b> a few operators run vintage Vespa or Fiat 500 convoys through Chianti. Romantic, and you are not driving after tastings if you take the classic-car version with a driver.'},
+      '2026-10-08':{slots:[
+        ['09:30','<b>Frecciarossa → Bologna</b> (35 min). Bags to KiPoint left-luggage.',[10,15],'/bag'],
+        ['10:45','<b>Asinelli Tower — 498 steps.</b> Leans harder than Pisa and almost nobody queues. Book a slot.',[5,8]],
+        ['12:30','Quadrilatero lunch — tagliatelle al ragù.',[15,25]],
+        ['16:30','Train to Venezia Santa Lucia (~1h30).',[15,25]],
+      ]},
+      '2026-10-09':{slots:[
+        ['09:30','<b>Doge\'s Palace SECRET ITINERARIES</b> — prison passages, interrogation rooms, the route Casanova escaped by. Guide-only, book ahead.',[32,40]],
+        ['13:00','Rialto market backstreets, cicchetti lunch.',[10,15]],
+        ['16:00','<b>San Giorgio Maggiore</b> bell tower — elevator, tiny queue, cash only.',[8]],
+        ['19:30','Cicchetti tour, or dinner in Cannaregio.',[95,115]],
+      ]},
+      '2026-10-10':{slots:[
+        ['09:30','<b>VOGA ALLA VENETA rowing lesson</b> — you row a Venetian boat standing up, yourself. ~1.5hrs, and a far better story than sitting in a gondola.',[80,120]],
+        ['13:00','<b>Murano glassblowing demo</b> at a working furnace — not a shop window.',[25,40]],
+        ['18:30','Optional gondola at dusk, if you still want one after rowing your own.',[90],'/boat'],
+        ['20:30','Last dinner in Cannaregio. Pack tonight.',[30,45]],
+      ], tip:'<b>The rowing lesson</b> is the thing people remember. Small operators run them from Cannaregio and Giudecca; book ~3 weeks ahead.'},
+    }
+  },
+
+  food: {
+    name:'FOOD', tag:'Bologna becomes the point, not the stopover',
+    blurb:'Maximum eating, same slow pace. A pasta class in the world capital of fresh egg pasta, Testaccio instead of only Trastevere, and a market-to-plate day in Venice.',
+    delta:200,   // EUR; ~$325 CAD
+    addChecks:[
+      {id:'f_pasta',     txt:'BOLOGNA PASTA CLASS — Thu Oct 8, ~2.5hrs (the headline of this version)', due:'2026-08-15', vault:['Start time','Address','Ref']},
+      {id:'f_testaccio', txt:'Testaccio market food tour — Rome', due:'2026-08-20', vault:['Time','Meeting point','Ref']},
+      {id:'f_rialto',    txt:'Rialto market tour with a chef — Fri Oct 9 morning', due:'2026-08-25', vault:['Time','Meeting point','Ref']},
+    ],
+    dropChecks:[],
+    addPins:[
+      {c:'rome', day:'2026-10-03', n:'Testaccio Market', t:'15:00', lat:41.8757625, lng:12.4747035, note:'Food tour — where Romans actually eat.'},
+      {c:'rome', day:'2026-10-04', n:'Jewish Ghetto', t:'13:00', lat:41.8925388, lng:12.4776925, note:'Carciofi alla giudia — in season in October.'},
+      {c:'florence', day:'2026-10-06', n:'Mercato Centrale', t:'12:00', lat:43.7764549, lng:11.2530832, note:'Upstairs food hall, then a lampredotto cart.'},
+    ],
+    patch:{
+      '2026-10-03':{slots:[
+        ['08:00','<b>Vatican Museums</b> (pre-booked). Closed Sundays — this is the day.',[25]],
+        ['12:30','St. Peter\'s, free.',null],
+        ['15:00','<b>Testaccio market food tour</b> — the working-class food quarter where Romans actually eat. Better food than Trastevere, fewer tourists.',[70,90]],
+        ['18:30','Giardino degli Aranci for sunset — it is a 15-min walk from Testaccio.',null],
+      ], tip:'<b>Testaccio</b> sits between the Vatican morning and the Aventine sunset geographically. This day flows better than it looks.'},
+      '2026-10-04':{slots:[
+        ['08:30','<b>Colosseum</b> + Forum + Palatine, first slot.',[18]],
+        ['13:00','<b>Jewish Ghetto lunch</b> — <i>carciofi alla giudia</i>, fried whole artichokes. In season in October. Try Nonna Betta or Ba\'Ghetto.',[25,40]],
+        ['16:00','Gelato crawl: compare two of Fatamorgana / Otaleg / Giolitti. Research is research.',[6,10]],
+        ['19:00','<b>Twilight Trastevere food tour</b> — this is dinner.',[90,110]],
+      ]},
+      '2026-10-06':{slots:[
+        ['08:15','<b>Uffizi</b>, first slot.',[25]],
+        ['12:00','<b>Mercato Centrale</b> upstairs food hall — every Tuscan thing under one roof.',[15,25]],
+        ['13:30','<b>Lampredotto cart.</b> Florence\'s tripe sandwich. The local street food nobody warns you about. Da Nerbone or a street cart.',[5,8]],
+        ['17:00','Oltrarno enoteca crawl — Le Volpi e l\'Uva, Il Santino.',[15,30]],
+      ], tip:'<b>Lampredotto</b> sounds alarming and tastes like the best beef sandwich you have had. Order it <i>bagnato</i> — bun dipped in the broth.'},
+      '2026-10-07':{slots:[
+        ['am','Slow morning.',null],
+        ['11:00','<b>FULL-DAY Chianti with winery lunch</b> — or a farmhouse cooking class in the hills. Long table, many courses, no rush.',[110,150]],
+        ['18:30','Sunset over the vines.',null],
+        ['21:00','Back in Florence, nothing more required.',null],
+      ]},
+      '2026-10-08':{slots:[
+        ['09:00','Check out, walk to Santa Maria Novella.',null],
+        ['09:30','<b>Frecciarossa → Bologna</b> (35 min).',[10,15]],
+        ['10:15','Bags into KiPoint left-luggage at Bologna Centrale.',[6,8],'/bag'],
+        ['11:00','<b>PASTA CLASS with a sfoglina</b> — hands-on: tagliatelle al ragù, ricotta tortelloni, tortellini in brodo. Then you sit down and eat everything you made, with Pignoletto. ~2.5hrs.',[69,115]],
+        ['14:00','Walk it off under the porticoes — Piazza Maggiore, Santo Stefano.',null],
+        ['15:00','<b>Quadrilatero</b> for what you did not make: mortadella, aged parmigiano, a last lambrusco.',[10,20]],
+        ['16:30','Train to Venezia Santa Lucia (~1h30).',[15,25]],
+        ['18:30','Out onto the Grand Canal at golden hour. Cannaregio.',null],
+      ], tip:'<b>This is the best single day of the food version.</b> Bologna is the birthplace of tagliatelle al ragù and tortellini in brodo — you are learning it where it was invented, in the gap of a travel day you were spending on a train anyway.'},
+      '2026-10-09':{slots:[
+        ['09:00','<b>Rialto market tour with a chef</b> — fish and produce at 9am is the real Venice. Market to plate.',[70,95]],
+        ['13:00','Lunch from what you saw being unloaded.',[25,40]],
+        ['17:00','San Giorgio Maggiore bell tower, or a spritz on the Zattere.',[8]],
+        ['19:30','<b>Cicchetti tour</b> — bacari crawl, traghetto crossing included.',[95,115]],
+      ]},
+      '2026-10-10':{slots:[
+        ['09:30','Murano then <b>Burano</b> on a 24h vaporetto pass.',[25]],
+        ['12:30','<b>Burano seafood lunch</b> — risotto de gò, lagoon fish. This is the meal, not a stop.',[30,45]],
+        ['18:30','Gondola at dusk, quiet back canals.',[90],'/boat'],
+        ['20:30','Last dinner in Cannaregio. Pack tonight.',[30,45]],
+      ]},
+    }
+  },
+};
+
+VARIANTS.romantic = {
+  name:'ROMANTIC', tag:'Timing and moments, not upgrades',
+  blurb:'Same group tours, same budget-ish. What changes is when you are places: dawn in Venice, sunset claimed every day, late starts, and long stretches with nowhere to be. Two splurge dinners and the gondola are the only real spends.',
+  delta:150,   // EUR; ~$240 CAD — two dinners + gondola
+  addChecks:[
+    {id:'r_dinners', txt:'TWO splurge dinners reserved — one Florence, one Venice (book weeks ahead)', due:'2026-09-01', vault:['Florence','Venice']},
+    {id:'r_gondola', txt:'Gondola — dusk, and ASK FOR THE BACK CANALS toward Cannaregio, not the Grand Canal', due:'2026-09-20', vault:['Time','Pier','Agreed price']},
+    {id:'r_dawn',    txt:'Set an alarm for the Venice dawn walk — Fri Oct 9, out the door by 07:00', due:'2026-10-08', vault:['Alarm set']},
+    {id:'r_rooftop', txt:'Note two rooftop aperitivo spots — dome view in Rome, Arno view in Florence', due:'2026-09-20', vault:['Rome spot','Florence spot']},
+  ],
+  dropChecks:[],
+  transitPatch:{
+    '2026-10-05':{leave:'09:45', dep:'10:30',
+      note:'Romantic version: the later 10:30 train — sleep in, the day still works. Book this departure, not the 09:30.'},
+  },
+  patch:{
+    '2026-10-02':{slots:[
+      ['10:20','<b>Land FCO.</b> EES biometrics. Nothing today you can be late for.',null],
+      ['12:00','Leonardo Express → Termini, drop bags.',[14]],
+      ['13:30','Long lunch, no research, half a carafe of house white.',[20,30]],
+      ['16:00','<b>Trevi → Pantheon → Navona</b> as the light goes gold.',null],
+      ['18:30','<b>The ritual starts tonight:</b> aperitivo, sitting down, two spritzes. Same time every evening from here.',[10,18]],
+      ['20:30','First dinner, somewhere small off the piazza.',[35,55]],
+    ], tip:'<b>The daily aperitivo</b> is the cheapest romantic habit in Italy. Six to seven-thirty, sitting down, snacks included. Do it every night and by Venice it will feel like yours.'},
+    '2026-10-03':{slots:[
+      ['08:00','<b>Vatican Museums</b>, earliest slot. Empty galleries are the romantic ones — worth the alarm.',[25]],
+      ['12:30','Sistine shortcut into St. Peter\'s.',null],
+      ['14:00','<b>Nothing at all.</b> Back to the room. Sleep.',null],
+      ['18:00','<b>Giardino degli Aranci</b> at sunset. Free, open till 21:00, and the best view in Rome you do not pay for.',null],
+      ['18:30','<b>Aventine Keyhole</b> two minutes away — St. Peter\'s dome framed in a door.',null],
+      ['20:30','Walk down and over Ponte Sisto into Trastevere for dinner.',[35,55]],
+    ]},
+    '2026-10-04':{slots:[
+      ['08:30','<b>Colosseum</b> first slot, Forum + Palatine after. Out by noon.',[18]],
+      ['13:30','Lunch in Monti. Then nothing until evening — genuinely nothing.',[20,30]],
+      ['19:00','<b>Twilight Trastevere food tour</b> (group is fine — it is a walking dinner, and you meet people once, briefly, over wine).',[90,110]],
+    ], tip:'<b>Group tours are not unromantic.</b> An evening food walk with ten people is a shared dinner, not a coach party. The unromantic thing is a 40-person bus at 8am.'},
+    '2026-10-05':{slots:[
+      ['10:30','<b>Later train</b> Rome → Florence. Sleep in; the day still works.',[15,30]],
+      ['13:30','Drop bags in Oltrarno, lunch on a quiet square.',[25,40]],
+      ['15:00','<b>Duomo</b> — Monday hours close at 15:45, so go straight there.',null],
+      ['17:30','<b>Piazzale Michelangelo.</b> Buy a bottle and two cups on the walk up. Sit on the steps 45 min before sunset.',[10,15]],
+      ['20:30','Dinner in Santo Spirito.',[35,55]],
+    ], tip:'<b>Wine on the steps at Piazzale Michelangelo</b> is the moment most people name when they talk about Florence. Total cost: about the price of two coffees at home.'},
+    '2026-10-06':{slots:[
+      ['08:15','<b>Uffizi</b> first slot — again, empty rooms.',[25]],
+      ['11:30','Ponte Vecchio, then lose the afternoon in Oltrarno. Workshops, a long lunch, no plan.',[25,45]],
+      ['18:00','<b>Rooftop aperitivo over the Arno.</b> Several hotel terraces admit non-guests. Sunset over the river.',[18,30]],
+      ['20:30','<b>SPLURGE DINNER #1.</b> Book this weeks ahead. One of two real spends on this version.',[80,120]],
+    ]},
+    '2026-10-07':{slots:[
+      ['am','<b>Sleep in.</b> Coffee sitting down, the market, nowhere to be.',null],
+      ['15:00','<b>Chianti sunset tour</b> — small group, two wineries, someone else drives. Perfectly romantic from the back of a minibus with a glass in hand.',[75,95]],
+      ['18:30','Sunset over the vines.',null],
+      ['21:00','Back in Florence, half-fed from tastings. A light bite, or straight to bed.',[10,20]],
+    ]},
+    '2026-10-08':{slots:[
+      ['09:30','Check out, Frecciarossa → Bologna (35 min).',[10,15]],
+      ['10:15','Bags into left-luggage at Bologna Centrale.',[6,8],'/bag'],
+      ['11:00','Porticoes to Piazza Maggiore. No list, just walk.',null],
+      ['12:30','<b>Two-hour lunch in the Quadrilatero.</b> Tagliatelle, a bottle, no rush. The porticoes mean rain cannot reach you.',[30,50]],
+      ['15:00','Coffee in Piazza Santo Stefano — the prettiest square in the city, and nearly empty.',[5,10]],
+      ['16:30','Train to Venice (~1h30).',[15,25]],
+      ['18:30','<b>Out of the station onto the Grand Canal at golden hour.</b> The best possible first sight of Venice.',null],
+      ['20:30','Dinner in Cannaregio, five minutes from bed.',[35,55]],
+    ]},
+    '2026-10-09':{slots:[
+      ['07:00','<b>THE DAWN WALK.</b> Out the door before the city wakes. Rialto, San Marco, the back lanes — 5–8am is when Venice belongs to whoever is awake. This is the single most romantic hour of the trip and it costs nothing.',null],
+      ['09:00','Coffee and a pastry standing at a bar, like everyone around you.',[4,8]],
+      ['10:30','<b>Back to bed for an hour.</b> Genuinely. You earned it.',null],
+      ['13:00','Cicchetti lunch at a bacaro counter — €1.50–3 a bite, a €3 ombra of wine.',[12,20]],
+      ['16:30','<b>San Giorgio Maggiore bell tower</b> at golden hour. Elevator, tiny queue, cash only.',[8]],
+      ['19:30','<b>Cicchetti tour</b> — group, evening, a bacaro crawl. Dinner handled.',[95,115]],
+    ], tip:'<b>The dawn walk is the whole reason to sleep IN Venice</b> rather than day-tripping. Day visitors physically cannot be there at 7am. You can.'},
+    '2026-10-10':{slots:[
+      ['10:00','<b>Drift.</b> Dorsoduro, the Zattere. Islands only if you feel like it. No alarm.',null],
+      ['13:00','Lunch wherever you end up.',[25,40]],
+      ['17:00','<b>Zattere at sunset</b> — 2km of waterfront where Venetians actually stroll.',null],
+      ['18:30','<b>GONDOLA at dusk.</b> €80–100 for the boat, just the two of you. Agree the price first, and ask to go toward Cannaregio through the back canals.',[90],'/boat'],
+      ['20:30','<b>SPLURGE DINNER #2.</b> The last night. Pack afterwards.',[80,120]],
+    ], tip:'<b>Where you ask to go matters more than what you pay.</b> Travellers who route away from the Grand Canal report barely meeting another boat — Marco Polo\'s house and Chiesa dei Miracoli appearing silently — versus gondola traffic jams around San Marco. Same price, different trip.'},
+  }
+};
+
+// ============ WHERE YOU SLEEP ============
+// Hotels attach to nights, not to single days. Each stay covers the dates you sleep there.
+const STAYS = [
+  {id:'rome',     label:'Rome',     area:'Monti / Centro Storico', nights:['2026-10-02','2026-10-03','2026-10-04']},
+  {id:'florence', label:'Florence', area:'Oltrarno / Santo Spirito', nights:['2026-10-05','2026-10-06','2026-10-07']},
+  {id:'venice',   label:'Venice',   area:'Cannaregio',            nights:['2026-10-08','2026-10-09','2026-10-10']},
+];
+function stayForDate(d){ return STAYS.find(s=>s.nights.indexOf(d)!==-1) || null; }
+
+// ============ TRANSIT — the five moments you cannot be late for ============
+const TRANSIT = [
+  {date:'2026-10-01', tag:'FLY OUT', leave:'17:00', dep:'~20:00',
+   route:'Home → Toronto Pearson', service:'AC890 · YYZ → FCO',
+   station:'Pearson TERMINAL 1', wrong:'Not Terminal 3 — Air Canada international leaves from T1.',
+   how:['UP Express from Union — 25 min, ~$12, every 15 min','Taxi / rideshare — 40–60 min depending on traffic, ~$60–75'],
+   buffer:'Be airside 2.5–3 hours before departure. International, checked bags, and Pearson security queues are unpredictable.',
+   miss:'Air Canada rebooks you at the desk — this is the one leg with a real safety net. Message your Rome hotel if you will land a day late.'},
+
+  {date:'2026-10-02', tag:'ARRIVE', leave:'once bags are out', dep:'~12:00',
+   route:'Fiumicino → central Rome', service:'Leonardo Express · 32 min · €14',
+   station:'Fiumicino Aeroporto station — INSIDE the airport', wrong:'Do not board the FL1 regional by mistake. It is cheaper but goes to Trastevere and Tiburtina, not Termini.',
+   how:['Follow signs marked "Treni" — the station sits between Terminals 2 and 3, up the escalators from arrivals','Buy at the machine or the Trenitalia app. Machines take cards.'],
+   buffer:'Departures every 15–30 minutes, so there is nothing to miss. Take whichever one is next.',
+   miss:'Nothing lost — the next train is 15–30 min away. Machine-bought tickets are valid for the date; tickets bought online in advance may be tied to a specific departure, so check yours.'},
+
+  {date:'2026-10-05', tag:'TRAIN', leave:'08:45', dep:'09:30',
+   route:'Rome → Florence', service:'Frecciarossa · ~1h20',
+   station:'ROMA TERMINI', wrong:'Some Frecce leave from Roma Tiburtina instead. Check the station printed on YOUR ticket the night before — they are 15 minutes apart by metro.',
+   how:['From Monti — 10–15 min walk, flat','From Centro Storico — taxi 15 min, €10–12, or bus 40/64','Give yourself 20–25 min at the station. It is a train, not a flight.'],
+   buffer:'The platform (binario) appears on the big board about 15 minutes before departure. Doors close roughly 1 minute before it leaves.',
+   miss:'Depends on your fare. Super Economy is lost. Economy and Base can be changed — go straight to the ticket office, not the machine. Walk-up on the next train runs €50–60.'},
+
+  {date:'2026-10-08', tag:'TRAIN ×2', leave:'08:45', dep:'09:30',
+   route:'Florence → Bologna → Venice', service:'Frecciarossa · 35 min, then ~1h30',
+   station:'FIRENZE SANTA MARIA NOVELLA (SMN)', wrong:'Not Rifredi, not Campo di Marte. And on arrival: VENEZIA SANTA LUCIA, not Venezia Mestre — Mestre is on the mainland and leaves you a 10-minute connecting train short of the city.',
+   how:['From Oltrarno — 15–20 min walk over the river, or taxi €10–12','Bags into KiPoint left-luggage at Bologna Centrale on arrival, ~€6–8 each'],
+   buffer:'Book the two legs as SEPARATE tickets. If Bologna lunch runs long or the first train is late, you have only lost one cheap leg, not the whole day.',
+   miss:'Bologna→Venice runs roughly hourly. Missing it costs you an hour and a walk-up fare, not the evening — you would still reach Cannaregio before dark.'},
+
+  {date:'2026-10-11', tag:'FLY HOME', leave:'08:15', dep:'12:20',
+   route:'Venice → Marco Polo', service:'AC817 · VCE → YYZ',
+   station:'VCE Marco Polo', wrong:'Do not leave this to the morning to figure out. Confirm your route with the hotel the night before.',
+   how:['Alilaguna waterbus — from Guglie or Fondamente Nove, ~1 hour, €15–18. Scenic, slower.','Walk to Piazzale Roma (~15 min from Cannaregio) then ATVO bus — 20 min, €10, every 30 min. Fastest reliable option.','Private water taxi — 30 min, ~€120. The expensive certainty.'],
+   buffer:'At the airport by 09:45 for a 12:20 departure. Non-EU departure means an EES exit scan on the way out.',
+   miss:'This is the one with no safety net. Leave by 08:30 at the very latest. If Alilaguna is disrupted, the ATVO bus from Piazzale Roma runs independently of the boats.'},
+];
+
+// ============ TRANSIT PINS (stations & airports, real coordinates) ============
+const HUBS = [
+  {day:'2026-10-02', c:'rome',     n:'Fiumicino (FCO)',            t:'10:20', kind:'air',
+   lat:41.8034632, lng:12.2519211, note:'Land here. Station is INSIDE, between T2 and T3 — follow "Treni".'},
+  {day:'2026-10-02', c:'rome',     n:'Roma Termini',               t:'12:35', kind:'rail',
+   lat:41.9012873, lng:12.5015756, note:'Leonardo Express arrives here. 32 min from FCO, €14.'},
+  {day:'2026-10-05', c:'rome',     n:'Roma Termini — DEPART',      t:'09:30', kind:'rail',
+   lat:41.9012873, lng:12.5015756, note:'Leave the hotel 08:45. Check your ticket says Termini, not Tiburtina.'},
+  {day:'2026-10-05', c:'florence', n:'Firenze S.M.N. — ARRIVE',    t:'10:50', kind:'rail',
+   lat:43.7766715, lng:11.2479159, note:'Santa Maria Novella. Not Rifredi, not Campo di Marte.'},
+  {day:'2026-10-08', c:'florence', n:'Firenze S.M.N. — DEPART',    t:'09:30', kind:'rail',
+   lat:43.7766715, lng:11.2479159, note:'Leave Oltrarno 08:45 — 15–20 min walk over the river.'},
+  {day:'2026-10-08', c:'bologna',  n:'Bologna Centrale',           t:'10:05', kind:'rail',
+   lat:44.5059073, lng:11.3433694, note:'Bags into KiPoint left-luggage here first. Big, confusing station — allow extra minutes.'},
+  {day:'2026-10-08', c:'venice',   n:'Venezia Santa Lucia',        t:'18:15', kind:'rail',
+   lat:45.4410697, lng:12.3210436, note:'SANTA LUCIA, not Mestre. Step out and the Grand Canal is right there.'},
+  {day:'2026-10-11', c:'venice',   n:'Piazzale Roma (ATVO bus)',   t:'08:45', kind:'bus',
+   lat:45.43767,    lng:12.31832,  note:'~15 min walk from Cannaregio. ATVO to VCE: 20 min, €10, every 30 min.'},
+  {day:'2026-10-11', c:'venice',   n:'Marco Polo (VCE)',           t:'09:45', kind:'air',
+   lat:45.5046844, lng:12.3466295, note:'Be here by 09:45 for the 12:20 flight. EES exit scan on the way out.'},
+];
+
+// ============ STATE ============
+const EXPEDIA_MCP = {type:"url", url:"https://www.expedia.com/mcp", name:"expedia"};
+const VIATOR_MCP  = {type:"url", url:"https://exp-app-mcp.prod.ep.viator.com/mcp", name:"viator"};
+const TRIP_START = new Date('2026-10-01T00:00:00');
+const TRIP_END   = new Date('2026-10-11T23:59:59');
+
+let prefs   = {cur:'CAD', mode:'auto', variant:'balanced', tier:'mid'};
+let checks  = {};   // {id:{done:bool, vault:{field:value}}}
+let budget  = {total:0, spends:[]};   // stored in EUR
+let activeDay = null;
+let activeCity = null;   // map filter: city chip
+let showHubs = true;     // show stations & airports on the map
+let hotels = {};   // {rome:{name,lat,lng}, florence:{...}, venice:{...}}
+let map=null, mkLayer=null;
+let me = '';                    // your display name (personal storage)
+let cmts = {};                  // {threadId:[{n,x,ts}]} — SHARED with everyone on this link
+let votes = {};                 // {name: variantKey}    — SHARED
+const openThreads = new Set();  // which comment threads are expanded (UI only)
+
+// ============ STORAGE ============
+async function sGet(k){ try{ const r=await window.storage.get(k,false); return r?JSON.parse(r.value):null; }catch(e){ return null; } }
+async function sSet(k,v){ try{ await window.storage.set(k,JSON.stringify(v),false); }catch(e){} }
+// shared=true → visible to everyone who opens this artifact. Comments + votes only.
+async function shGet(k){ try{ const r=await window.storage.get(k,true); return r?JSON.parse(r.value):null; }catch(e){ return null; } }
+async function shSet(k,v){ try{ await window.storage.set(k,JSON.stringify(v),true); }catch(e){ toast('Could not save — storage unreachable. Retry.'); } }
+const save = {
+  prefs:  ()=>sSet('it2-prefs',prefs),
+  checks: ()=>sSet('it2-checks',checks),
+  budget: ()=>sSet('it2-budget',budget),
+  hotels: ()=>sSet('it2-hotels',hotels),
+};
+
+// ============ COST MODEL ============
+// Per-person estimate in EUR. Flights excluded (already booked).
+const STAY_TIERS = {budget:{n:'Budget',   rate:95},      // per ROOM per night
+                    mid:   {n:'Mid-range',rate:150},
+                    comfort:{n:'Comfort', rate:230}};
+const NIGHTS = 9;
+const INCIDENTALS_PER_DAY = 22;   // coffee, water, gelato, local transit, tips not itemised
+const TRIP_DAYS = 10;
+
+function slotCostPP(c, suffix){
+  if(!c) return 0;
+  const mid = c.length>1 ? (c[0]+c[1])/2 : c[0];
+  const s = (suffix||'').toLowerCase();
+  if(s.indexOf('boat')!==-1) return mid/2;   // gondola is per boat, split two ways
+  return mid;                                // /bag ≈ one bag each; everything else per person
+}
+function costModel(variantKey){
+  const prev = prefs.variant;
+  prefs.variant = variantKey;
+  let itinerary = 0;
+  effDays().forEach(d=>d.slots.forEach(s=>{ itinerary += slotCostPP(s[2], s[3]); }));
+  prefs.variant = prev;
+  const stay = (STAY_TIERS[prefs.tier]||STAY_TIERS.mid).rate * NIGHTS / 2;  // per person
+  const extras = INCIDENTALS_PER_DAY * TRIP_DAYS;
+  return {itinerary, stay, extras, total: itinerary + stay + extras};
+}
+
+// ============ VARIANT RESOLUTION ============
+function V(){ return VARIANTS[prefs.variant] || VARIANTS.balanced; }
+function effPins(){ return PINS.concat(V().addPins||[]); }
+function effDays(){
+  const p = V().patch;
+  return DAYS.map(d=>{
+    const o = p[d.date];
+    if(!o) return d;
+    return Object.assign({}, d, o);   // patched slots/tip override the base
+  });
+}
+function effChecklist(){
+  const v=V();
+  const dropped = new Set(v.dropChecks||[]);
+  return CHECKLIST.filter(c=>!dropped.has(c.id)).concat(v.addChecks||[]);
+}
+
+// ============ MONEY ============
+function sym(){ return prefs.cur==='EUR' ? '€' : '$'; }
+function toCur(eur){ return prefs.cur==='EUR' ? eur : eur*RATE_CAD; }
+function fromCur(v){ return prefs.cur==='EUR' ? v : v/RATE_CAD; }
+function roundNice(v){
+  if(v>=20) return Math.round(v/5)*5;
+  if(v>=5)  return Math.round(v);
+  return Math.round(v*2)/2;
+}
+function money(eur){ return sym()+roundNice(toCur(eur)).toLocaleString(); }
+function moneyExact(eur){ return sym()+Math.round(toCur(eur)).toLocaleString(); }
+function costLabel(c, suffix){
+  if(!c) return '';
+  const s = c.length>1 ? money(c[0])+'–'+roundNice(toCur(c[1])).toLocaleString() : money(c[0]);
+  return s + (suffix||'');
+}
+
+// ============ COORDS ============
+// Accepts "41.8947, 12.4925" or a pasted Google Maps URL (…@lat,lng… or ?q=lat,lng or /place/…/@lat,lng)
+function parseCoords(raw){
+  if(!raw) return null;
+  const t=String(raw).trim();
+  let m = t.match(/^\s*(-?\d{1,3}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)\s*$/);
+  if(m) return chk(+m[1],+m[2]);
+  m = t.match(/[@?&](?:q=|ll=)?(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/);
+  if(m) return chk(+m[1],+m[2]);
+  m = t.match(/!3d(-?\d{1,3}\.\d+)!4d(-?\d{1,3}\.\d+)/);
+  if(m) return chk(+m[1],+m[2]);
+  return null;
+}
+function chk(lat,lng){
+  if(!isFinite(lat)||!isFinite(lng)) return null;
+  if(lat<-90||lat>90||lng<-180||lng>180) return null;
+  return {lat,lng};
+}
+function metersBetween(a,b){
+  const R=6371000, toR=x=>x*Math.PI/180;
+  const dLat=toR(b.lat-a.lat), dLng=toR(b.lng-a.lng);
+  const s=Math.sin(dLat/2)**2 + Math.cos(toR(a.lat))*Math.cos(toR(b.lat))*Math.sin(dLng/2)**2;
+  return Math.round(2*R*Math.asin(Math.sqrt(s)));
+}
+function distLabel(m){
+  if(m<1000) return m+'m';
+  return (m/1000).toFixed(1)+'km';
+}
+
+// ============ DATES ============
+function today(){ return new Date(); }
+function daysBetween(a,b){ return Math.ceil((b-a)/86400000); }
+function inTrip(){ const n=today(); return n>=TRIP_START && n<=TRIP_END; }
+function currentMode(){
+  if(prefs.mode==='plan') return 'plan';
+  if(prefs.mode==='travel') return 'travel';
+  return inTrip() ? 'travel' : 'plan';
+}
+function todayKey(){
+  const n=today();
+  return n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0');
+}
+
+// ============ DEADLINE ENGINE ============
+function deadlineInfo(item){
+  if(checks[item.id] && checks[item.id].done) return {cls:'done', txt:'BOOKED', order:9999};
+  const d = daysBetween(today(), new Date(item.due+'T00:00:00'));
+  if(d < 0)   return {cls:'late', txt:'OVERDUE', order:-1000+d};
+  if(d <= 7)  return {cls:'late', txt:d+'D LEFT', order:d};
+  if(d <= 21) return {cls:'soon', txt:d+'D LEFT', order:d};
+  return {cls:'ok', txt:d+'D LEFT', order:d};
+}
+function sortedChecklist(){
+  return effChecklist().map(c=>({...c, dl:deadlineInfo(c)})).sort((a,b)=>a.dl.order-b.dl.order);
+}
+
+// ============ CLAUDE / MCP ============
+async function askClaudeJSON(prompt, servers, schemaHint){
+  const call = async (p)=>{
+    // no AbortSignal: the artifact sandbox structured-clones fetch options and can't clone it
+    const fetchP = fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({model:"claude-sonnet-4-6", max_tokens:1000, messages:[{role:"user",content:p}], mcp_servers:servers})
+    });
+    const timeoutP = new Promise((_,rej)=>setTimeout(()=>rej(Object.assign(new Error('timeout'),{kind:'timeout'})),120000));
+    const res = await Promise.race([fetchP,timeoutP]);
+    if(!res.ok){
+      let d=''; try{ const j=await res.json(); d=j?.error?.message||''; }catch(e){}
+      throw Object.assign(new Error(d||('HTTP '+res.status)),{status:res.status});
+    }
+    return res.json();
+  };
+  const grab = (data)=>{
+    if(!data||!data.content) return null;
+    const texts = data.content.filter(b=>b.type==='text').map(b=>b.text||'');
+    for(const t of texts){ const a=pullArray(t); if(a&&a.length) return a; }
+    const tools = data.content.filter(b=>b.type==='mcp_tool_result')
+      .map(b=>(b.content&&b.content[0]&&b.content[0].text)||'').filter(Boolean);
+    for(const t of tools){ const a=pullArray(t); if(a&&a.length) return a; }
+    return null;
+  };
+  let out = grab(await call(prompt));
+  if(out) return out;
+  out = grab(await call(prompt+`\n\nIMPORTANT: your previous answer could not be parsed. Reply with ONLY a raw JSON array matching ${schemaHint} — no markdown, no prose. If nothing useful came back, reply [].`));
+  if(out) return out;
+  throw Object.assign(new Error('unparseable'),{kind:'parse'});
+}
+function pullArray(text){
+  if(!text) return null;
+  let t = text.replace(/```json|```/gi,'').trim();
+  const s=t.indexOf('['), e=t.lastIndexOf(']');
+  if(s===-1||e===-1||e<=s) return null;
+  const slice=t.slice(s,e+1);
+  for(const a of [slice, slice.replace(/,\s*([\]}])/g,'$1')]){
+    try{ const p=JSON.parse(a); if(Array.isArray(p)) return p; }catch(err){}
+  }
+  return null;
+}
+function num(v){ const n = typeof v==='number'?v:parseFloat(String(v==null?'':v).replace(/[^0-9.]/g,'')); return isFinite(n)?n:0; }
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function errMsg(e, who){
+  if(e.kind==='timeout') return `Timed out after 2 min — ${who} may be slow. Retry.`;
+  if(e.kind==='parse')   return `Got a reply but couldn't parse it. Retry — a second attempt usually works.`;
+  if(e.status===401||e.status===403) return `Auth problem. Run this inside Claude and check ${who} is connected in Settings → Connectors.`;
+  if(e.status===429) return `Rate limited — wait ~30s and retry.`;
+  if(e.status>=500)  return `Server hiccup (${e.status}). Retry shortly.`;
+  if(e.message==='Failed to fetch'||e instanceof TypeError){
+    document.getElementById('envBanner').classList.add('show');
+    return `Couldn't reach the API — this usually means the file isn't running inside Claude. See the note above.`;
+  }
+  return `Failed: ${esc(e.message||'unknown')}. Retry, and check ${who} is connected.`;
+}
+
+// ============ BOOK → TICK → LOG ============
+async function commitBooking(checkId, label, eurAmount, vaultSeed){
+  checks[checkId] = checks[checkId] || {done:false, vault:{}};
+  checks[checkId].done = true;
+  if(vaultSeed) checks[checkId].vault = Object.assign({}, checks[checkId].vault, vaultSeed);
+  if(eurAmount>0) budget.spends.push({desc:label, eur:eurAmount});
+  await save.checks(); await save.budget();
+  renderChecklist(); renderBudget(); renderDays(); renderStats();
+  toast(`Booked · ${label} · ${moneyExact(eurAmount)} logged`);
+}
+function toast(msg){
+  let t=document.getElementById('toast');
+  if(!t){ t=document.createElement('div'); t.id='toast'; document.body.appendChild(t); }
+  t.textContent=msg; t.className='show';
+  clearTimeout(window.__tt); window.__tt=setTimeout(()=>t.className='',3200);
+}
+
+// ============ TRIP TALK — shared comments + variant votes ============
+// One shared key holds all threads; one holds votes. Read-merge-write on every
+// post so two people commenting close together don't stomp each other's whole set.
+async function loadSocial(){
+  cmts  = (await shGet('it2-comments')) || {};
+  votes = (await shGet('it2-votes'))    || {};
+}
+function cWhen(ts){
+  try{ return new Date(ts).toLocaleDateString(undefined,{month:'short',day:'numeric'}); }catch(e){ return ''; }
+}
+function threadCount(tid){ return (cmts[tid]||[]).length; }
+function threadHTML(tid){
+  const list = cmts[tid]||[];
+  return `<div class="clist">${
+    list.length ? list.map(c=>`<div class="cmt"><span class="cn">${esc(c.n)}</span><span class="ct">${cWhen(c.ts)}</span><div class="cx">${esc(c.x)}</div></div>`).join('')
+                : '<div class="cempty">No comments yet — start it off.</div>'
+  }</div>
+  <div class="cform">
+    <input id="cn_${tid}" placeholder="Your name" value="${esc(me)}" maxlength="30">
+    <input id="cx_${tid}" placeholder="Add a comment…" maxlength="500"
+      onkeydown="if(event.key==='Enter'){event.preventDefault();postComment('${tid}');}">
+    <button class="btn btn-teal btn-sm" onclick="postComment('${tid}')">Post</button>
+  </div>`;
+}
+function toggleThread(tid){
+  if(openThreads.has(tid)) openThreads.delete(tid); else openThreads.add(tid);
+  if(tid==='trip') renderTripTalk(); else renderDays();
+}
+async function postComment(tid){
+  const nEl=document.getElementById('cn_'+tid), xEl=document.getElementById('cx_'+tid);
+  if(!nEl||!xEl) return;
+  const n=nEl.value.trim(), x=xEl.value.trim();
+  if(!n){ toast('Add your name first'); nEl.focus(); return; }
+  if(!x){ xEl.focus(); return; }
+  me=n; await sSet('it2-me',me);
+  const fresh=(await shGet('it2-comments'))||{};        // merge with latest, then write
+  (fresh[tid]=fresh[tid]||[]).push({n:n, x:x, ts:Date.now()});
+  cmts=fresh; await shSet('it2-comments',cmts);
+  openThreads.add(tid);
+  renderDays(); renderTripTalk();
+  toast('Posted');
+}
+async function castVote(k,ev){
+  if(ev) ev.stopPropagation();
+  if(!me){
+    toast('Add your name in Trip talk below, then vote');
+    openThreads.add('trip'); renderTripTalk();
+    const el=document.getElementById('cn_trip'); if(el){ el.scrollIntoView({behavior:'smooth',block:'center'}); el.focus(); }
+    return;
+  }
+  const fresh=(await shGet('it2-votes'))||{};
+  if(fresh[me]===k) delete fresh[me];                   // tap again to un-vote
+  else fresh[me]=k;
+  votes=fresh; await shSet('it2-votes',votes);
+  renderVariants();
+  toast(votes[me]?('Voted '+VARIANTS[k].name):'Vote removed');
+}
+function voteRow(k){
+  const who=Object.keys(votes).filter(n=>votes[n]===k);
+  const mine=votes[me]===k;
+  return `<div class="vvotes">
+    <div class="vtally"><b>${who.length}</b> vote${who.length===1?'':'s'}
+      ${who.length?`<span class="vwho">${esc(who.join(', '))}</span>`:''}
+    </div>
+    <button class="btn ${mine?'btn-teal':'btn-outline'} btn-sm" onclick="castVote('${k}',event)">${mine?'✓ Voted':'Vote'}</button>
+  </div>`;
+}
+function renderTripTalk(){
+  const el=document.getElementById('tripTalk'); if(!el) return;
+  const open=openThreads.has('trip');
+  const n=threadCount('trip');
+  el.innerHTML = `<div class="tthead">
+      <div class="cbtn" onclick="toggleThread('trip')">💬 <span class="cnum">${n||''}</span> ${n?('comment'+(n>1?'s':'')):'Start the discussion'} ${open?'▾':'▸'}</div>
+      <div class="cbtn" onclick="refreshSocial()">↻ REFRESH</div>
+    </div>
+    <div class="cthread ${open?'open':''}">${open?threadHTML('trip'):''}</div>`;
+}
+async function refreshSocial(){
+  await loadSocial();
+  renderDays(); renderTripTalk(); renderVariants();
+  toast('Comments and votes refreshed');
+}
+
+// ============ CHECKLIST + VAULT ============
+function renderChecklist(){
+  const el=document.getElementById('checklist');
+  if(!el) return;
+  el.innerHTML = sortedChecklist().map(c=>{
+    const st = checks[c.id]||{done:false,vault:{}};
+    const v  = st.vault||{};
+    const filled = c.vault.filter(f=>v[f]).length;
+    return `<div class="ck ${st.done?'done':''}">
+      <div class="ck-main">
+        <div class="ck-box" onclick="toggleCheck('${c.id}')">${st.done?'✓':''}</div>
+        <div class="ck-txt" onclick="toggleVault('${c.id}')">${c.txt}
+          ${st.done&&filled?`<span class="ck-vcount">${filled}/${c.vault.length} details saved</span>`:''}
+        </div>
+        <div class="ck-due ${c.dl.cls}">${c.dl.txt}</div>
+      </div>
+      <div class="ck-vault" id="vault_${c.id}">
+        ${c.vault.map(f=>`<label>${f}<input type="text" value="${esc(v[f]||'')}" placeholder="—"
+           onchange="setVault('${c.id}','${f}',this.value)"></label>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+async function toggleCheck(id){
+  checks[id]=checks[id]||{done:false,vault:{}};
+  checks[id].done=!checks[id].done;
+  await save.checks(); renderChecklist(); renderStats(); renderDays();
+}
+function toggleVault(id){
+  const v=document.getElementById('vault_'+id);
+  if(v) v.classList.toggle('open');
+}
+async function setVault(id,field,val){
+  checks[id]=checks[id]||{done:false,vault:{}};
+  checks[id].vault[field]=val;
+  await save.checks(); renderChecklist();
+  const v=document.getElementById('vault_'+id); if(v) v.classList.add('open');
+}
+
+// ============ DAY CARDS (+ plan B, + booked badges) ============
+function dayBookings(d){
+  const known = new Set(effChecklist().map(c=>c.id));
+  const map={'2026-10-03':'vatican','2026-10-04':'colosseum','2026-10-05':'trains','2026-10-06':'uffizi','2026-10-07':'chianti','2026-10-08':'trains','2026-10-09':'cicchetti'};
+  const extra={'2026-10-04':'trastevere'};
+  const ids=[map[d.date],extra[d.date]].filter(Boolean);
+  return ids.filter(id=>known.has(id)&&checks[id]&&checks[id].done).map(id=>effChecklist().find(c=>c.id===id));
+}
+function renderDays(){
+  const el=document.getElementById('days'); if(!el) return;
+  const mode=currentMode();
+  const tk=todayKey();
+  const src = effDays();
+  const list = mode==='travel' ? src.filter(d=>d.date>=tk).slice(0,2) : src;
+  if(mode==='travel' && !list.length){ el.innerHTML='<div class="day"><div class="day-head"><h3>Trip complete</h3></div><div class="slot"><div class="t"></div><div>Hope it was good. Switch to Planning to review the ledger.</div></div></div>'; return; }
+  el.innerHTML = list.map(d=>{
+    const booked=dayBookings(d);
+    const isToday = d.date===tk;
+    return `<div class="day ${d.city} ${activeDay===d.date?'active':''} ${isToday?'istoday':''}" onclick="focusDay('${d.date}')">
+      <div class="day-head">
+        <h3>${d.title}${isToday?' <span class="todaytag">TODAY</span>':''}</h3>
+        <div class="city-tag">${d.tag}</div>
+      </div>
+      ${booked.length?`<div class="bookedrow">${booked.map(b=>{
+        const v=(checks[b.id]&&checks[b.id].vault)||{};
+        const det=Object.keys(v).filter(k=>v[k]).map(k=>`${k}: ${esc(v[k])}`).join(' · ');
+        return `<div class="bk">✓ ${b.txt.split('—')[0].trim()}${det?`<span>${det}</span>`:''}</div>`;
+      }).join('')}</div>`:''}
+      ${hotelRow(d)}
+      ${d.slots.map(s=>`<div class="slot"><div class="t">${s[0]}</div><div>${s[1]} ${s[2]?`<span class="cost">${costLabel(s[2],s[3])}</span>`:''}</div></div>`).join('')}
+      ${d.tip?`<div class="tip">${d.tip}</div>`:''}
+      ${d.planB?`<div class="pb"><div class="pb-t" onclick="event.stopPropagation();this.parentNode.classList.toggle('open')">☂ Plan B — rain, delays, tired</div><div class="pb-b">${d.planB}</div></div>`:''}
+      ${(()=>{const n=threadCount(d.date), open=openThreads.has(d.date);
+        return `<div class="cwrap" onclick="event.stopPropagation()">
+          <div class="cbtn" onclick="toggleThread('${d.date}')">💬 <span class="cnum">${n||''}</span> ${n?('comment'+(n>1?'s':'')):'Comment'} ${open?'▾':'▸'}</div>
+          <div class="cthread ${open?'open':''}">${open?threadHTML(d.date):''}</div>
+        </div>`;})()}
+    </div>`;
+  }).join('');
+}
+function focusDay(date){ setMapDay(date); }
+
+// ============ MAP ============
+function renderMarkers(){
+  if(!map) return;
+  if(mkLayer) mkLayer.remove();
+  mkLayer=L.layerGroup().addTo(map);
+  const list = visiblePins();
+  // hotel pins: the one for the focused day, or all set hotels when unfocused
+  const stays = activeDay ? [stayForDate(activeDay)].filter(Boolean)
+              : activeCity ? STAYS.filter(s=>s.id===activeCity)
+              : STAYS;
+  stays.forEach(st=>{
+    const h=hotels[st.id];
+    if(!h||!isFinite(h.lat)) return;
+    L.marker([h.lat,h.lng],{icon:L.divIcon({className:'',iconSize:[26,26],iconAnchor:[13,13],
+      html:`<div class="hpin" title="${esc(h.name||st.label)}">&#9673;</div>`})})
+      .bindPopup(`<b>${esc(h.name||(st.label+' hotel'))}</b><br>Where you sleep in ${st.label}<br><a href="https://www.google.com/maps/search/?api=1&query=${h.lat},${h.lng}" target="_blank" rel="noopener">Open in Maps ↗</a>`)
+      .addTo(mkLayer);
+  });
+  if(activeDay){
+    // numbered, time-tagged pins in visit order, joined by a dashed route
+    const ord = orderedPins(activeDay);
+    const seq = ord.filter(p=>timeKey(p.t)<9999);
+    for(let i=1;i<seq.length;i++){
+      const d = metersBetween(seq[i-1],seq[i]);
+      if((seq[i-1].kind||seq[i].kind) && d>3000) continue;   // a ride, not a path — drawing it misleads
+      const water = seq[i].by==='boat' || seq[i-1].by==='boat';
+      L.polyline([[seq[i-1].lat,seq[i-1].lng],[seq[i].lat,seq[i].lng]],
+        {color:CITY_COLOR[seq[0].c],weight:2.5,opacity:water?.45:.55,dashArray:water?'2,8':'6,7'}).addTo(mkLayer);
+    }
+    let n=0;
+    ord.forEach((p)=>{
+      if(p.kind){                                   // transit hub — square marker, no number
+        L.marker([p.lat,p.lng],{zIndexOffset:200,icon:L.divIcon({className:'',iconSize:[54,46],iconAnchor:[27,14],
+          html:`<div class="numwrap"><div class="hubpin">${HUB_GLYPH[p.kind]||'▤'}</div><div class="timetag b-hub">${esc(p.t)}</div></div>`})})
+          .bindPopup(`<b>${p.n}</b><br>${p.t}<br>${p.note}<br><a href="https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}" target="_blank" rel="noopener">Open in Maps ↗</a>`)
+          .addTo(mkLayer);
+        return;
+      }
+      const i = n++;
+      const alt = timeKey(p.t)>=9999;
+      L.marker([p.lat,p.lng],{zIndexOffset:100,icon:L.divIcon({className:'',iconSize:[54,46],iconAnchor:[27,14],
+        html:`<div class="numwrap"><div class="numpin ${alt?'alt':''}" style="background:${CITY_COLOR[p.c]}">${alt?'◇':(i+1)}</div><div class="timetag b-${band(p.t).k}">${band(p.t).g} ${esc(p.t)}</div></div>`})})
+        .bindPopup(`<b>${alt?'':(i+1)+'. '}${p.n}</b><br>${band(p.t).g} ${p.t} · ${band(p.t).l}${p.by==='boat'?' · reached by boat':''}<br>${p.note}<br><a href="https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}" target="_blank" rel="noopener">Open in Maps ↗</a>`)
+        .addTo(mkLayer);
+    });
+  } else {
+    // the journey spine: every hub in chronological order, so the whole trip reads as one line
+    if(showHubs){
+      const spine = HUBS.slice().sort((a,b)=> a.day===b.day ? timeKey(a.t)-timeKey(b.t) : (a.day<b.day?-1:1));
+      if(spine.length>1){
+        L.polyline(spine.map(h=>[h.lat,h.lng]),
+          {color:'#182430',weight:3,opacity:.35,dashArray:'10,8'}).addTo(mkLayer);
+      }
+    }
+    list.forEach(p=>{
+      if(p.kind){
+        L.marker([p.lat,p.lng],{zIndexOffset:200,icon:L.divIcon({className:'',iconSize:[30,30],iconAnchor:[15,15],
+          html:`<div class="hubpin sm">${HUB_GLYPH[p.kind]||'▤'}</div>`})})
+          .bindPopup(`<b>${p.n}</b><br>${dayShort(p.day)} · ${p.t}<br>${p.note}<br><a href="https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}" target="_blank" rel="noopener">Open in Maps ↗</a>`)
+          .on('click',()=>{ setMapDay(p.day); })
+          .addTo(mkLayer);
+        return;
+      }
+      L.circleMarker([p.lat,p.lng],{radius:6,fillColor:CITY_COLOR[p.c],color:'#fff',weight:2,fillOpacity:1})
+        .bindPopup(`<b>${p.n}</b><br>${dayShort(p.day)} · ${band(p.t).g} ${p.t}<br>${p.note}<br><a href="https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}" target="_blank" rel="noopener">Open in Maps ↗</a>`)
+        .on('click',()=>{ setMapDay(p.day); })
+        .addTo(mkLayer);
+    });
+  }
+  if(!activeDay){
+    const pts=list.map(p=>[p.lat,p.lng]);
+    stays.forEach(st=>{const h=hotels[st.id]; if(h&&isFinite(h.lat)) pts.push([h.lat,h.lng]);});
+    if(activeCity && pts.length) map.fitBounds(pts,{padding:[35,35],maxZoom:15});
+    else { const all=effPins().concat(HUBS).map(p=>[p.lat,p.lng]); map.fitBounds(all,{padding:[30,30]}); }
+  }
+}
+function initMap(){
+  renderFilters(); renderPinList();
+  if(typeof L==='undefined'){
+    const m=document.getElementById('map'); if(m) m.style.display='none';
+    const f=document.getElementById('mapFallback'); if(f) f.classList.add('show');
+    return;
+  }
+  map=L.map('map',{scrollWheelZoom:false}).setView([43.5,11.8],6);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'© OpenStreetMap'}).addTo(map);
+  renderMarkers();
+}
+
+// ============ BUDGET ============
+function renderBudget(){
+  const spentE = budget.spends.reduce((s,x)=>s+x.eur,0);
+  const totalE = budget.total||0;
+  const pct = totalE>0?Math.min(100,(spentE/totalE)*100):0;
+  const fill=document.getElementById('burnFill');
+  if(fill){ fill.style.width=pct+'%'; fill.className='burn-fill'+(totalE>0&&spentE>totalE?' over':pct>80?' hot':''); }
+  const sl=document.getElementById('spentLbl'), ll=document.getElementById('leftLbl'), bi=document.getElementById('budgetInput');
+  if(sl) sl.textContent = moneyExact(spentE)+' spent';
+  if(ll) ll.textContent = totalE>0 ? moneyExact(totalE-spentE)+' left' : 'set a budget →';
+  if(bi){ bi.value = totalE? Math.round(toCur(totalE)) : ''; bi.placeholder='Budget '+sym(); }
+  const sa=document.getElementById('spendAmt'); if(sa) sa.placeholder=sym();
+  const log=document.getElementById('spendLog');
+  if(log) log.innerHTML = budget.spends.slice().reverse().map((s,i)=>{
+    const idx=budget.spends.length-1-i;
+    return `<div class="sp"><span>${esc(s.desc)}</span><span class="spr"><span class="amt">${moneyExact(s.eur)}</span><button onclick="delSpend(${idx})">✕</button></span></div>`;
+  }).join('');
+}
+async function addSpend(){
+  const d=document.getElementById('spendDesc').value.trim();
+  const a=parseFloat(document.getElementById('spendAmt').value);
+  if(!d||!a) return;
+  budget.spends.push({desc:d, eur:fromCur(a)});
+  document.getElementById('spendDesc').value=''; document.getElementById('spendAmt').value='';
+  await save.budget(); renderBudget();
+}
+async function delSpend(i){ budget.spends.splice(i,1); await save.budget(); renderBudget(); }
+
+// ============ STATS + MODE + CURRENCY ============
+function renderStats(){
+  const dd=document.getElementById('daysToGo');
+  const d=daysBetween(today(),TRIP_START);
+  if(dd) dd.textContent = d>0? d : (inTrip()? 'NOW' : '—');
+  const ec=effChecklist();
+  const done=ec.filter(c=>checks[c.id]&&checks[c.id].done).length;
+  const bc=document.getElementById('bookedCount'); if(bc) bc.textContent=done+'/'+ec.length;
+  const urgent=sortedChecklist().filter(c=>!(checks[c.id]&&checks[c.id].done)&&c.dl.cls==='late').length;
+  const uc=document.getElementById('urgentCount'); if(uc) uc.textContent=urgent;
+}
+function applyMode(){
+  const m=currentMode();
+  document.body.setAttribute('data-mode',m);
+  document.querySelectorAll('.modebtn').forEach(b=>b.classList.toggle('on', b.dataset.m===prefs.mode));
+  const sub=document.getElementById('daysSub');
+  if(sub) sub.textContent = m==='travel' ? 'Today and tomorrow. Switch to Planning for the full trip.' : 'One anchor per day, empty afternoons. Tap a day to focus the map.';
+  renderDays();
+}
+async function setMode(m){ prefs.mode=m; await save.prefs(); applyMode(); }
+async function setCur(c){
+  prefs.cur=c; await save.prefs();
+  document.querySelectorAll('.curbtn').forEach(b=>b.classList.toggle('on', b.dataset.c===c));
+  renderDays(); renderBudget(); renderRef(); renderTier(); renderVariants(); renderCostBreak();
+}
+
+// ============ REFERENCE (currency-aware) ============
+const REF = [
+  {h:'TRAINS & TRANSFERS', rows:[
+    ['Leonardo Express FCO→Termini',[14],' · 32min'],
+    ['Rome → Florence (Oct 5)',[15,30],' · 1h20'],
+    ['Florence → Bologna (Oct 8)',[10,15],' · 35min'],
+    ['Bologna → Venice (Oct 8)',[15,25],' · 1h30'],
+    ['Bologna left-luggage',[6,8],'/bag'],
+    ['Alilaguna Venice→VCE (Oct 11)',[15,18],' · ~1h'],
+    ['Venice vaporetto 24h pass',[25],''],
+  ]},
+  {h:'TICKETS & TOURS', rows:[
+    ['Vatican Museums (skip line)',[25],''],
+    ['Colosseum + Forum + Palatine',[18],''],
+    ['Uffizi (timed entry)',[25],''],
+    ['Chianti sunset tour',[75,95],''],
+    ['Trastevere food tour',[90,110],''],
+    ['Venice cicchetti tour',[95,115],''],
+    ['Gondola, 30min at dusk',[90],'/boat'],
+    ['Duomo climb (optional)',[30],''],
+  ]},
+  {h:'DAILY COSTS', rows:[
+    ['Hotel per night (mid-range)',[120,180],''],
+    ['Meals per day',[45,65],''],
+    ['Espresso standing at the bar',[1.2,1.8],''],
+    ['Gelato',[2.5,4],''],
+    ['Aperol spritz',[4,8],''],
+    ['Cicchetti in Venice, per bite',[1.5,3],''],
+    ['City tax at hotel, per night',[3,7],''],
+  ]},
+];
+function renderRef(){
+  const el=document.getElementById('refGrid'); if(!el) return;
+  el.innerHTML = REF.map(card=>`<div class="ref"><h4>${card.h} (${prefs.cur})</h4>
+    ${card.rows.map(r=>`<div class="line"><span>${r[0]}</span><span>${costLabel(r[1],'')}${r[2]}</span></div>`).join('')}
+  </div>`).join('') + `<div class="ref"><h4>BORDER & ADMIN</h4>
+    <div class="line"><span>EES biometrics at FCO</span><span>allow 60–90m</span></div>
+    <div class="line"><span>ETIAS (if live by October)</span><span>${costLabel([20],'')}</span></div>
+    <div class="line"><span>Venice access fee in October</span><span>not required</span></div>
+    <div class="line"><span>Rate used here</span><span>€1 = ~$${RATE_CAD} CAD</span></div>
+    <div class="warn"><b>EES:</b> first EU entry since Apr 2026 = fingerprints + face scan at Fiumicino; queues have run long, so nothing is booked tight on landing morning. <b>ETIAS:</b> launches Q4 2026 — check travel.gc.ca ~3 weeks out and apply if the portal is live.</div>
+  </div>`;
+}
+
+// ============ VARIANT SWITCHER ============
+function renderTier(){
+  const el=document.getElementById('tierRow'); if(!el) return;
+  el.innerHTML = Object.keys(STAY_TIERS).map(t=>{
+    const on = prefs.tier===t, s=STAY_TIERS[t];
+    return `<div class="tchip ${on?'on':''}" onclick="setTier('${t}')">${s.n} · ${money(s.rate)}/night</div>`;
+  }).join('') + `<div class="tnote">hotel rate per room · estimates exclude flights</div>`;
+}
+async function setTier(t){ prefs.tier=t; await save.prefs(); renderTier(); renderVariants(); renderCostBreak(); }
+function renderCostBreak(){
+  const el=document.getElementById('costBreak'); if(!el) return;
+  const c=costModel(prefs.variant);
+  el.innerHTML = `
+    <div class="cb-row"><span>Tickets, tours, meals in the plan</span><span>${moneyExact(c.itinerary)}</span></div>
+    <div class="cb-row"><span>Hotels — ${NIGHTS} nights, ${STAY_TIERS[prefs.tier].n.toLowerCase()}, split two ways</span><span>${moneyExact(c.stay)}</span></div>
+    <div class="cb-row"><span>Incidentals — coffee, water, gelato, local transit</span><span>${moneyExact(c.extras)}</span></div>
+    <div class="cb-row total"><span>Estimated total, per person</span><span>${moneyExact(c.total)}</span></div>
+    <div class="cb-note">Rough working estimate: mid-points of every price range in the plan, plus a nightly hotel rate you pick above. Flights are excluded since yours are booked. Real spend will drift with restaurant choices more than anything else.</div>`;
+}
+function renderVariants(){
+  const el=document.getElementById('variants'); if(!el) return;
+  el.innerHTML = Object.keys(VARIANTS).map(k=>{
+    const v=VARIANTS[k], on = prefs.variant===k;
+    return `<div class="vcard ${on?'on':''} v-${k}" onclick="setVariant('${k}')">
+      <div class="vtop"><div class="vname">${v.name}</div>${on?'<div class="vpill">ACTIVE</div>':''}</div>
+      <div class="vtag">${v.tag}</div>
+      <div class="vblurb">${v.blurb}</div>
+      <div class="vcost">${moneyExact(costModel(k).total)}<span>pp est.</span></div>
+      <div class="vdelta">${k==='balanced'?'baseline':'+'+moneyExact(costModel(k).total-costModel('balanced').total)+' vs balanced'}</div>
+      ${voteRow(k)}
+    </div>`;
+  }).join('');
+}
+async function setVariant(k){
+  if(prefs.variant===k) return;
+  prefs.variant=k; await save.prefs();
+  renderVariants(); renderChecklist(); renderDays(); renderStats(); renderCostBreak(); renderTransit(); syncMap();
+  toast('Switched to '+VARIANTS[k].name);
+}
+
+// ============ STAYS UI ============
+function hotelRow(d){
+  const st=stayForDate(d.date);
+  if(!st) return '';
+  const h=hotels[st.id];
+  if(!h||!isFinite(h.lat)) return `<div class="hrow empty">🛏 ${st.label} hotel not set — add it below the map</div>`;
+  const pins=effPins().filter(p=>p.day===d.date);
+  let far='';
+  if(pins.length){
+    const ds=pins.map(p=>metersBetween(h,p)).sort((a,b)=>a-b);
+    far = ` · today's stops ${distLabel(ds[0])}–${distLabel(ds[ds.length-1])} away`;
+  }
+  return `<div class="hrow">🛏 ${esc(h.name||st.label+' hotel')}${far}</div>`;
+}
+function renderStays(){
+  const el=document.getElementById('stays'); if(!el) return;
+  el.innerHTML = STAYS.map(st=>{
+    const h=hotels[st.id]||{};
+    const set = isFinite(h.lat);
+    return `<div class="stay ${set?'set':''}">
+      <div class="stay-h">
+        <div class="stay-city">${st.label}</div>
+        <div class="stay-meta">${st.nights.length} nights · suggested: ${st.area}</div>
+      </div>
+      <input class="stay-name" placeholder="Hotel name" value="${esc(h.name||'')}"
+        onchange="setHotelName('${st.id}',this.value)">
+      <input class="stay-co" placeholder="Paste coordinates or a Google Maps link"
+        value="${set?(h.lat+', '+h.lng):''}" onchange="setHotelCoords('${st.id}',this.value,this)">
+      <div class="stay-st">${set?'✓ on the map':'not set'}</div>
+    </div>`;
+  }).join('');
+}
+async function setHotelName(id,v){
+  hotels[id]=hotels[id]||{};
+  hotels[id].name=v.trim();
+  await save.hotels(); renderStays(); renderDays(); syncMap();
+}
+async function setHotelCoords(id,v,inputEl){
+  if(!v.trim()){
+    if(hotels[id]){ delete hotels[id].lat; delete hotels[id].lng; }
+    await save.hotels(); renderStays(); renderDays(); syncMap(); return;
+  }
+  const c=parseCoords(v);
+  if(!c){
+    toast("Couldn't read that. Use 41.8947, 12.4925 — or paste a Google Maps link.");
+    if(inputEl) inputEl.classList.add('bad');
+    return;
+  }
+  hotels[id]=hotels[id]||{};
+  hotels[id].lat=c.lat; hotels[id].lng=c.lng;
+  await save.hotels(); renderStays(); renderDays(); syncMap();
+  toast(STAYS.find(s=>s.id===id).label+' hotel pinned');
+}
+
+// ============ MAP FILTERS + PIN LIST ============
+// time-of-day bands — October sunset in Italy lands ~18:45
+const BANDS = [
+  {k:'early',  max:9*60,  g:'☀', l:'EARLY'},
+  {k:'morning',max:12*60, g:'☀', l:'MORNING'},
+  {k:'midday', max:17*60, g:'◑', l:'AFTERNOON'},
+  {k:'golden', max:19*60, g:'◐', l:'GOLDEN HOUR'},
+  {k:'evening',max:9999,  g:'☾', l:'EVENING'},
+];
+function band(t){
+  const m=timeKey(t);
+  if(m>=9999) return {k:'flex', g:'◇', l:'FLEXIBLE'};
+  return BANDS.find(b=>m<b.max) || BANDS[BANDS.length-1];
+}
+function legMode(a,b){
+  const k = a.kind || b.kind;
+  if(k==='air'  && metersBetween(a,b)>3000) return {g:'✈', l:'transfer'};
+  if(k==='rail') return {g:'▤', l:'by train'};
+  if(k==='bus')  return {g:'▭', l:'by bus'};
+  if(b.by==='boat' || a.by==='boat')        return {g:'⛴', l:'by boat'};
+  return {g:'⇢', l:'walk'};
+}
+function timeKey(t){
+  const m=String(t||'').match(/^(\d{1,2}):(\d{2})/);
+  if(m) return (+m[1])*60 + (+m[2]);
+  if(/^am$/i.test(t)) return 0;
+  return 9999;                       // 'alt', '—' etc. sort last
+}
+function dayPins(day){
+  const base = effPins().filter(p=>p.day===day);
+  return showHubs ? base.concat(HUBS.filter(h=>h.day===day)) : base;
+}
+function orderedPins(day){
+  return dayPins(day).slice().sort((a,b)=>timeKey(a.t)-timeKey(b.t));
+}
+const HUB_GLYPH = {air:'✈', rail:'▤', bus:'▭'};
+function daySummary(day){
+  const ps=orderedPins(day).filter(p=>timeKey(p.t)<9999);
+  if(ps.length<2) return ps.length?`${ps.length} stop`:'';
+  let walk=0, boat=0, transit=0;
+  for(let i=1;i<ps.length;i++){
+    const a=ps[i-1], b=ps[i], d=metersBetween(a,b);
+    if(a.kind || b.kind){ transit+=d; continue; }        // any leg touching a station/airport is not a walk
+    if(a.by==='boat'||b.by==='boat') boat+=d; else walk+=d;
+  }
+  const bits=[`${ps.length} stops`];
+  if(walk) bits.push(`${distLabel(walk)} on foot`);
+  if(boat) bits.push(`${distLabel(boat)} by boat`);
+  if(transit) bits.push(`${distLabel(transit)} by train or bus`);
+  return bits.join(' · ');
+}
+
+const CITY_LABEL = {rome:'ROMA', florence:'FIRENZE', chianti:'CHIANTI', bologna:'BOLOGNA', venice:'VENEZIA'};
+function visiblePins(){
+  if(activeDay) return dayPins(activeDay);
+  const all = showHubs ? effPins().concat(HUBS) : effPins();
+  if(activeCity) return all.filter(p=>p.c===activeCity);
+  return all;
+}
+function dayShort(d){
+  const [ ,m,dd] = d.split('-');
+  return ['','JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][+m]+' '+(+dd);
+}
+function renderFilters(){
+  const el=document.getElementById('mapFilters'); if(!el) return;
+  const cities = Object.keys(CITY_LABEL).filter(c=>effPins().some(p=>p.c===c));
+  const allOn = !activeCity && !activeDay;
+  const cityRow = `<div class="fchip ${allOn?'on':''}" data-c="all" onclick="setMapAll()">ALL</div>` +
+    `<div class="fchip hubchip ${showHubs?'on':''}" onclick="toggleHubs()">▤ STATIONS</div>` +
+    cities.map(c=>`<div class="fchip ${(!activeDay&&activeCity===c)?'on':''}" data-c="${c}" onclick="setMapCity('${c}')">${CITY_LABEL[c]}</div>`).join('');
+  const days = [...new Set(effPins().map(p=>p.day))].sort()
+    .filter(d=>!activeCity || effPins().some(p=>p.day===d && p.c===activeCity));
+  const dayRow = days.map(d=>`<div class="fchip day ${activeDay===d?'on':''}" onclick="setMapDay('${d}')">${dayShort(d)}</div>`).join('');
+  el.innerHTML = `<div class="frow">${cityRow}</div><div class="frow sub">${dayRow}</div>`;
+}
+function renderPinList(){
+  const el=document.getElementById('pinList'); if(!el) return;
+  const list=visiblePins();
+  const stays = activeDay ? [stayForDate(activeDay)].filter(Boolean) : activeCity ? STAYS.filter(s=>s.id===activeCity) : [];
+  let head='';
+  stays.forEach(st=>{
+    const h=hotels[st.id];
+    if(h&&isFinite(h.lat)) head+=`<div class="pin hotel"><div class="pdot" style="background:var(--navy)"></div>
+      <div><div class="pnm">🛏 ${esc(h.name||st.label+' hotel')}</div><div class="pdy">where you sleep · ${st.label}</div></div>
+      <a href="https://www.google.com/maps/search/?api=1&query=${h.lat},${h.lng}" target="_blank" rel="noopener">OPEN ↗</a></div>`;
+  });
+  if(activeDay){
+    const ord=orderedPins(activeDay);
+    const sum=daySummary(activeDay);
+    el.innerHTML = (sum?`<div class="plhead">${dayShort(activeDay)} · ${sum}</div>`:'') + head +
+      ord.map((p,idx)=>{
+        if(p.kind) return `<div class="pin hub">
+          <div class="pnum hubnum">${HUB_GLYPH[p.kind]||'▤'}</div>
+          <div><div class="pnm">${esc(p.n)}</div><div class="pdy">${esc(p.t)} · ${esc(p.note)}</div></div>
+          <a href="https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}" target="_blank" rel="noopener">OPEN ↗</a></div>`;
+        const i = ord.slice(0,idx).filter(x=>!x.kind).length;
+        const alt=timeKey(p.t)>=9999;
+        const prev = ord.slice(0,idx).filter(x=>!x.kind).pop();
+        const lm = prev ? legMode(prev,p) : null;
+        const dd = prev ? metersBetween(prev,p) : 0;
+        const rideLeg = (prev && (prev.kind||p.kind) && dd>3000);
+        const leg = (prev && !alt && timeKey(prev.t)<9999 && !rideLeg)
+          ? `<div class="leg">${lm.g} ${distLabel(dd)} ${lm.l}</div>` : '';
+        return leg + `<div class="pin">
+          <div class="pnum ${alt?'alt':''}" style="background:${CITY_COLOR[p.c]}">${alt?'◇':(i+1)}</div>
+          <div><div class="pnm">${esc(p.n)}</div><div class="pdy"><span class="bandbadge b-${band(p.t).k}">${band(p.t).g} ${band(p.t).l}</span> ${esc(p.t)}</div></div>
+          <a href="https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}" target="_blank" rel="noopener">OPEN ↗</a>
+        </div>`;
+      }).join('');
+    return;
+  }
+  const sorted = list.slice().sort((a,b)=> a.day===b.day ? timeKey(a.t)-timeKey(b.t) : (a.day<b.day?-1:1));
+  el.innerHTML = head + sorted.map(p=>`
+    <div class="pin ${p.kind?'hub':''}">
+      ${p.kind ? `<div class="pdot hubdot">${HUB_GLYPH[p.kind]||'▤'}</div>`
+               : `<div class="pdot" style="background:${CITY_COLOR[p.c]}"></div>`}
+      <div><div class="pnm">${esc(p.n)}</div><div class="pdy">${dayShort(p.day)} · ${esc(p.t)}</div></div>
+      <a href="https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}" target="_blank" rel="noopener">OPEN ↗</a>
+    </div>`).join('');
+}
+function syncMap(){ renderFilters(); renderPinList(); renderMarkers(); }
+function setMapAll(){ activeCity=null; activeDay=null; renderDays(); syncMap(); }
+function setMapCity(c){ activeCity = (activeCity===c && !activeDay) ? null : c; activeDay=null; renderDays(); syncMap(); }
+function setMapDay(d){
+  activeDay = (activeDay===d) ? null : d;
+  if(activeDay) activeCity = (effPins().find(p=>p.day===activeDay)||{}).c || null;
+  renderDays(); syncMap();
+  if(activeDay && map){
+    const pts=effPins().filter(p=>p.day===activeDay).map(p=>[p.lat,p.lng]);
+    const st=stayForDate(activeDay), h=st&&hotels[st.id];
+    if(h&&isFinite(h.lat)) pts.push([h.lat,h.lng]);
+    if(pts.length===1) map.setView(pts[0],15);
+    else if(pts.length) map.fitBounds(pts,{padding:[40,40],maxZoom:15});
+  }
+}
+
+// ============ TRANSIT CARDS ============
+function renderTransit(){
+  const el=document.getElementById('transit'); if(!el) return;
+  const tk=todayKey();
+  const patches = V().transitPatch || {};
+  el.innerHTML = TRANSIT.map(base=>{
+    const p = patches[base.date];
+    const t = p ? Object.assign({}, base, p) : base;
+    const past = t.date < tk;
+    return `<div class="tr ${past?'past':''}">
+      <div class="tr-head">
+        <div class="tr-when"><div class="tr-leave">${t.leave}</div><div class="tr-leavelbl">LEAVE BY</div></div>
+        <div class="tr-main">
+          <div class="tr-tag">${t.tag} · ${dayShort(t.date)}</div>
+          <div class="tr-route">${t.route}</div>
+          <div class="tr-svc">${t.service} · departs ${t.dep}</div>
+        </div>
+      </div>
+      <div class="tr-station">📍 ${t.station}</div>
+      ${p&&p.note?`<div class="tr-station" style="background:#FBF7EE;border-color:#EFE3C8;color:#6B5A2E;">✦ ${p.note}</div>`:''}
+      <div class="tr-wrong">⚠ ${t.wrong}</div>
+      <div class="tr-how">${t.how.map(h=>`<div class="tr-opt">${h}</div>`).join('')}</div>
+      <div class="tr-buf"><b>Timing:</b> ${t.buffer}</div>
+      <div class="tr-miss"><b>If it goes wrong:</b> ${t.miss}</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleHubs(){ showHubs = !showHubs; syncMap(); }
+
+// ============ LIVE SEARCH (Expedia hotels + Viator tours) ============
+const hotelOpts = {}, tourOpts = {};   // last search results per city index
+function renderSearchCards(){
+  const el=document.getElementById('searchCards'); if(!el) return;
+  el.innerHTML = SEARCH_CFG.map((c,i)=>`
+    <div class="scard">
+      <div class="shead">
+        <div><h4>${c.label}</h4><div class="ssub">${c.inDate} → ${c.outDate} · ${c.nights} nights</div></div>
+      </div>
+      <div class="scols">
+        <div class="scol">
+          <div class="scol-h">LIVE SEARCH</div>
+          <div class="sbtns">
+            <button class="btn btn-teal btn-sm" id="hb_${i}" onclick="searchHotels(${i})">Hotels</button>
+            <button class="btn btn-outline btn-sm" id="tb_${i}" onclick="searchTours(${i})">Tours</button>
+          </div>
+          <div class="sres" id="sres_${i}"></div>
+        </div>
+        <div class="scol sugg">
+          <div class="scol-h">QUICK SUGGESTIONS</div>
+          <div class="sg-lbl">Where to stay</div>
+          ${c.areas.map(a=>`<div class="area ${a.n.startsWith('Avoid')?'avoid':''}">
+              <div class="area-n">${a.n}</div><div class="area-d">${a.d}</div></div>`).join('')}
+          <div class="sg-lbl">Search terms for experiences</div>
+          <div class="keys">
+            ${c.keys.map(k=>`<button class="key" onclick="copyKey(this,'${k.replace(/'/g,"\\'")}')">${k}</button>`).join('')}
+          </div>
+          <div class="sg-foot">Tap a term to copy — paste into Viator, or into the Tours search.</div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+function copyKey(btn, text){
+  const done=()=>{ const o=btn.textContent; btn.classList.add('copied'); btn.textContent='copied ✓';
+                   setTimeout(()=>{btn.classList.remove('copied'); btn.textContent=o;},1400); };
+  try{
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done).catch(()=>fallbackCopy(text,done,btn));
+    } else fallbackCopy(text,done,btn);
+  }catch(e){ fallbackCopy(text,done,btn); }
+}
+function fallbackCopy(text,done,btn){
+  try{
+    const ta=document.createElement('textarea');
+    ta.value=text; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    const ok=document.execCommand('copy');
+    document.body.removeChild(ta);
+    if(ok){ done(); return; }
+  }catch(e){}
+  toast('Copy blocked here — the term is: '+text);
+}
+function loading(id,msg){
+  document.getElementById(id).innerHTML=`<div class="st load"><div class="spin"></div><div>${msg}</div></div>`;
+}
+function failed(id,msg,retry){
+  document.getElementById(id).innerHTML=`<div class="st err"><div>⚠ ${msg}</div><button class="btn btn-outline btn-sm" onclick="${retry}">Retry</button></div>`;
+}
+function empty(id,msg){ document.getElementById(id).innerHTML=`<div class="st err"><div>${msg}</div></div>`; }
+
+async function searchHotels(i){
+  const c=SEARCH_CFG[i], id='sres_'+i, btn=document.getElementById('hb_'+i);
+  btn.disabled=true; loading(id,`Searching Expedia hotels in ${c.label}… (20–60s)`);
+  try{
+    const p=`Use the Expedia hotel search tool for ${c.city}: check-in ${c.inDate}, check-out ${c.outDate} (${c.nights} nights, 1 room, 2 adults). Reply with ONLY a raw JSON array, no markdown or prose, up to 5: [{"name":"","pricePerNight":0,"totalPrice":0,"rating":0,"neighborhood":""}]. Prices as plain numbers in EUR.`;
+    const raw=await askClaudeJSON(p,[EXPEDIA_MCP],'[{"name":"","pricePerNight":0,"totalPrice":0,"rating":0,"neighborhood":""}]');
+    const opts=raw.map(o=>({
+      name:String(o.name||o.hotelName||o.title||'Hotel'),
+      ppn:num(o.pricePerNight||o.nightlyRate||o.perNight),
+      total:num(o.totalPrice||o.total||o.price),
+      rating:o.rating||o.stars||'', hood:String(o.neighborhood||o.area||o.location||'')
+    })).filter(o=>o.total>0||o.ppn>0);
+    opts.forEach(o=>{ if(!o.total&&o.ppn) o.total=Math.round(o.ppn*c.nights); });
+    if(!opts.length){ empty(id,'Search ran but returned no priced hotels. Retry, or try Expedia directly.'); return; }
+    hotelOpts[i]=opts;   // never inline external strings into onclick — pass an index
+    document.getElementById(id).innerHTML=opts.map((o,j)=>`
+      <div class="opt">
+        <div><div class="on">${esc(o.name)}</div><div class="om">${esc(o.hood)} · ${esc(String(o.rating))}★ · ${money(o.ppn)}/night</div></div>
+        <div class="op">${money(o.total)}</div>
+        <button class="btn btn-outline btn-sm" onclick="bookHotel(${i},${j})">Book</button>
+      </div>`).join('');
+  }catch(e){ failed(id, errMsg(e,'Expedia'), `searchHotels(${i})`); }
+  finally{ btn.disabled=false; }
+}
+async function bookHotel(i,j){
+  const c=SEARCH_CFG[i], o=(hotelOpts[i]||[])[j];
+  if(!o) return;
+  await commitBooking(c.hotelCheck, `${c.label} hotel — ${o.name}`, o.total, {Address:o.hood||''});
+}
+
+async function searchTours(i){
+  const c=SEARCH_CFG[i], id='sres_'+i, btn=document.getElementById('tb_'+i);
+  btn.disabled=true; loading(id,`Searching Viator experiences in ${c.label}… (20–60s)`);
+  try{
+    const p=`Use the Viator search_experiences tool for ${c.city} between ${c.inDate} and ${c.outDate}. Focus on: ${c.tourHint}. Reply with ONLY a raw JSON array, no markdown or prose, up to 6: [{"name":"","price":0,"durationHours":0,"category":"","shortDescription":""}]. Price as a plain number, EUR per person.`;
+    const raw=await askClaudeJSON(p,[VIATOR_MCP],'[{"name":"","price":0,"durationHours":0,"category":"","shortDescription":""}]');
+    const opts=raw.map(o=>({
+      name:String(o.name||o.title||'Experience'),
+      price:num(o.price||o.fromPrice||o.priceFrom),
+      hrs:o.durationHours||o.duration||'?',
+      cat:String(o.category||o.type||''),
+      desc:String(o.shortDescription||o.description||'').slice(0,110)
+    })).filter(o=>o.name!=='Experience');
+    if(!opts.length){ empty(id,'No experiences came back. Retry, or search Viator directly.'); return; }
+    tourOpts[i]=opts;
+    document.getElementById(id).innerHTML=opts.map((o,j)=>`
+      <div class="opt">
+        <div><div class="on">${esc(o.name)}</div><div class="om">${esc(o.cat)} · ${esc(String(o.hrs))}h · ${esc(o.desc)}</div></div>
+        <div class="op">${money(o.price)}</div>
+        <button class="btn btn-outline btn-sm" onclick="bookTour(${i},${j})">Book</button>
+      </div>`).join('');
+  }catch(e){ failed(id, errMsg(e,'Viator'), `searchTours(${i})`); }
+  finally{ btn.disabled=false; }
+}
+async function bookTour(i,j){
+  const c=SEARCH_CFG[i], o=(tourOpts[i]||[])[j];
+  if(!o) return;
+  await commitBooking(c.tourCheck, `${c.label} tour — ${o.name}`, o.price*2, {});
+}
+
+// ============ BOOT ============
+(async function boot(){
+  prefs  = (await sGet('it2-prefs'))  || prefs;
+  checks = await sGet('it2-checks');
+  if(!checks){ checks = {flights:{done:true, vault:{}}}; await save.checks(); }  // flights are already booked
+  budget = (await sGet('it2-budget')) || budget;
+  hotels = (await sGet('it2-hotels')) || {};
+  me     = (await sGet('it2-me'))     || '';
+  await loadSocial();
+  document.querySelectorAll('.curbtn').forEach(b=>b.classList.toggle('on', b.dataset.c===prefs.cur));
+  renderTransit(); renderTier(); renderVariants(); renderCostBreak(); renderTripTalk(); renderStays(); renderSearchCards(); renderRef(); renderChecklist(); renderBudget(); renderStats();
+  applyMode();
+  initMap();
+  const bi=document.getElementById('budgetInput');
+  if(bi) bi.addEventListener('change', async e=>{
+    budget.total = fromCur(parseFloat(e.target.value)||0);
+    await save.budget(); renderBudget();
+  });
+})();
+
+</script>
+</body>
+</html>
