@@ -203,6 +203,120 @@
   .cat.stretch svg { animation: stretch 0.6s ease; }
   @keyframes stretch { 40% { transform: scaleX(1.12) scaleY(0.94); } }
 
+  /* ---- guestbook scraps -------------------------------------------- */
+  .scrap {
+    position: absolute;
+    width: 7.5%;
+    padding: 1.6% 1.2% 1.1%;
+    background: #f0e3ca;
+    color: #3b3227;
+    font-size: clamp(0.34rem, 0.92vw, 0.5rem);
+    line-height: 1.3;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+    filter: brightness(calc(1 - var(--night) * 0.4));
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .scrap::before {
+    /* the pin */
+    content: '';
+    position: absolute;
+    top: 3%; left: 50%;
+    width: 4px; height: 4px;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #ffd9a8, #c46a35);
+  }
+  .scrap .who {
+    display: block;
+    margin-top: 0.35em;
+    font-style: italic;
+    opacity: 0.7;
+  }
+  @media (max-width: 640px) { .scrap { display: none; } }
+
+  /* ---- the notebook dialog ----------------------------------------- */
+  dialog#notebook {
+    width: min(26rem, calc(100vw - 2.5rem));
+    background: #162124;
+    color: var(--ink);
+    border: 1px solid rgba(236, 228, 216, 0.15);
+    border-radius: 16px;
+    padding: 1.4rem 1.5rem;
+    font-family: inherit;
+  }
+  dialog#notebook::backdrop { background: rgba(6, 10, 11, 0.7); }
+  #notebook h2 { font-size: 1.15rem; font-weight: 640; margin-bottom: 0.2rem; }
+  #notebook .sub { color: var(--ink-dim); font-size: 0.9rem; margin-bottom: 1rem; }
+  #notebook ul {
+    list-style: none;
+    max-height: 11rem;
+    overflow-y: auto;
+    margin-bottom: 1.1rem;
+    padding-right: 0.4rem;
+  }
+  #notebook li { margin-bottom: 0.7rem; font-size: 0.92rem; }
+  #notebook li .who {
+    font-family: 'Spline Sans Mono', ui-monospace, monospace;
+    font-size: 0.68rem;
+    color: rgba(255, 180, 116, 0.75);
+  }
+  #notebook label {
+    display: block;
+    font-family: 'Spline Sans Mono', ui-monospace, monospace;
+    font-size: 0.7rem;
+    color: var(--ink-dim);
+    margin: 0.7rem 0 0.25rem;
+  }
+  #notebook input, #notebook textarea {
+    width: 100%;
+    background: rgba(236, 228, 216, 0.06);
+    border: 1px solid rgba(236, 228, 216, 0.18);
+    border-radius: 8px;
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.92rem;
+    padding: 0.45rem 0.6rem;
+  }
+  #notebook textarea { resize: vertical; min-height: 3.6rem; }
+  #notebook input:focus-visible, #notebook textarea:focus-visible,
+  #notebook button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+  #notebook .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.9rem;
+    gap: 0.8rem;
+  }
+  #notebook .count {
+    font-family: 'Spline Sans Mono', ui-monospace, monospace;
+    font-size: 0.7rem;
+    color: var(--ink-dim);
+  }
+  #notebook button {
+    background: none;
+    border: 1px solid rgba(255, 180, 116, 0.5);
+    border-radius: 999px;
+    color: var(--amber);
+    font: inherit;
+    font-size: 0.9rem;
+    padding: 0.35rem 1rem;
+    cursor: pointer;
+  }
+  #notebook button:hover { background: rgba(255, 180, 116, 0.12); }
+  #notebook button.close {
+    border: none;
+    color: var(--ink-dim);
+    padding: 0.35rem 0.5rem;
+  }
+  #notebook .note-status {
+    margin-top: 0.8rem;
+    font-family: 'Spline Sans Mono', ui-monospace, monospace;
+    font-size: 0.72rem;
+    color: var(--ink-dim);
+    min-height: 1em;
+  }
+
   /* ---- the card ---------------------------------------------------- */
   .card {
     margin-top: 1.5rem;
@@ -274,7 +388,7 @@
 <div class="wrap">
   <header>
     <h1>hello — you've found my room.</h1>
-    <p>the little amber lights are things i've made — hover or tap one. everything else in here is just… stuff. poke around anyway.</p>
+    <p>the little amber lights are things i've made — hover or tap one. everything else is just… stuff, but poke around anyway. there's a notebook on the rug if you'd like to leave a note.</p>
   </header>
 
   <main>
@@ -297,6 +411,26 @@
 
   <footer>that's my actual room, more or less · the dog is real, the cat comes and goes</footer>
 </div>
+
+<dialog id="notebook" aria-labelledby="notebook-title">
+  <h2 id="notebook-title">the notebook</h2>
+  <p class="sub">leave a note for whoever wanders in next. it gets pinned up in the room.</p>
+  <ul id="note-list"></ul>
+  <form id="note-form" method="dialog">
+    <label for="note-name">your name (optional)</label>
+    <input id="note-name" name="name" maxlength="40" autocomplete="off">
+    <label for="note-text">your note</label>
+    <textarea id="note-text" name="message" maxlength="140" required></textarea>
+    <div class="row">
+      <span class="count" id="note-count">140 left</span>
+      <span>
+        <button type="button" class="close" id="note-close">close</button>
+        <button type="submit" id="note-send">pin it</button>
+      </span>
+    </div>
+  </form>
+  <p class="note-status" id="note-status"></p>
+</dialog>
 
 <script>
 /* =====================================================================
@@ -325,11 +459,16 @@ const ROOMS = [
       { id: 'rug',       x: 38,   y: 79,   box: [28,   68,   46,   17] },
     ],
     toys: [
-      { id: 'lamp',  kind: 'lamp',  label: 'the lamp',  x: 50.5, y: 40,   glow: 'pendant' },
-      { id: 'radio', kind: 'radio', label: 'the radio', x: 70,   y: 57 },
-      { id: 'corgi', kind: 'corgi', label: 'the dog',   x: 43.5, y: 71,   box: [39, 65, 9, 13] },
+      { id: 'lamp',     kind: 'lamp',     label: 'the lamp',      x: 50.5, y: 40,   glow: 'pendant' },
+      { id: 'radio',    kind: 'radio',    label: 'the radio',     x: 70,   y: 57 },
+      { id: 'corgi',    kind: 'corgi',    label: 'the dog',       x: 43.5, y: 71,   box: [39, 65, 9, 13] },
+      { id: 'notebook', kind: 'notebook', label: 'the guestbook', x: 56.5, y: 74.5 },
     ],
     cat: { x: 12.5, y: 69.5, w: 8 },
+    /* wall slots where visitor notes get pinned, [x, y, tilt-degrees] */
+    paperSlots: [
+      [12, 53, -4], [24.5, 31, 3], [44, 35, -2], [56, 30.5, 3], [63, 52.5, -3], [76, 36, 2],
+    ],
     glows: [
       { id: 'hearth',  x: 24.5, y: 61, size: 34, flicker: true },
       { id: 'pendant', x: 50.5, y: 41, size: 30 },
@@ -339,6 +478,13 @@ const ROOMS = [
 
 /* Whose GitHub to raid for projects (topic: "room"). */
 const USERNAME = 'Nedesblade';
+
+/* Guestbook backend (Supabase). The key is the public one — row level
+   security is what actually protects the table. */
+const GUESTBOOK = {
+  url: 'https://abnkenlfuoyyqswchiht.supabase.co',
+  key: 'sb_publishable_uETWJu-eaUKVQxYnGBwkJg_1MfV_r7-',
+};
 
 /* Page background per time of day, sampled from the photo / its grade. */
 const SKY = {
@@ -505,6 +651,9 @@ function makeToy(toy, room) {
   } else if (toy.kind === 'radio') {
     btn.setAttribute('aria-pressed', 'false');
     btn.addEventListener('click', () => playRadio(btn, room));
+  } else if (toy.kind === 'notebook') {
+    btn.setAttribute('aria-haspopup', 'dialog');
+    btn.addEventListener('click', openNotebook);
   } else if (toy.kind === 'corgi') {
     spark.remove(); /* the dog is his own attraction */
     btn.addEventListener('click', () => {
@@ -598,9 +747,112 @@ function renderRoom(roomData, projects) {
 
   for (const toy of roomData.toys || []) room.appendChild(makeToy(toy, room));
   maybeCat(roomData, room);
+  renderScraps(roomData, room);
   applyClock();
   applyHash();
 }
+
+/* ---- guestbook ------------------------------------------------------ */
+let notes = [];
+const noteHeaders = {
+  'apikey': GUESTBOOK.key,
+  'Authorization': `Bearer ${GUESTBOOK.key}`,
+  'Content-Type': 'application/json',
+};
+
+function renderScraps(roomData, room) {
+  room.querySelectorAll('.scrap').forEach(el => el.remove());
+  const slots = roomData.paperSlots || [];
+  notes.slice(0, slots.length).forEach((n, i) => {
+    const [x, y, tilt] = slots[i];
+    const scrap = document.createElement('div');
+    scrap.className = 'scrap';
+    scrap.setAttribute('aria-hidden', 'true'); /* the notebook dialog is the readable copy */
+    scrap.style.cssText = `left:${x}%;top:${y}%;transform:rotate(${tilt}deg)`;
+    const msg = document.createElement('span');
+    msg.textContent = n.message.length > 44 ? n.message.slice(0, 43) + '…' : n.message;
+    const who = document.createElement('span');
+    who.className = 'who';
+    who.textContent = `— ${n.name || 'someone'}`;
+    scrap.append(msg, who);
+    room.appendChild(scrap);
+  });
+}
+
+function renderNoteList() {
+  const ul = document.getElementById('note-list');
+  ul.innerHTML = '';
+  if (!notes.length) {
+    const li = document.createElement('li');
+    li.textContent = 'no notes yet — the first page is yours.';
+    ul.appendChild(li);
+    return;
+  }
+  for (const n of notes) {
+    const li = document.createElement('li');
+    const msg = document.createElement('span');
+    msg.textContent = n.message;
+    const who = document.createElement('span');
+    who.className = 'who';
+    who.textContent = ` — ${n.name || 'someone'}`;
+    li.append(msg, who);
+    ul.appendChild(li);
+  }
+}
+
+async function loadNotes() {
+  try {
+    const r = await fetch(
+      `${GUESTBOOK.url}/rest/v1/guestbook_notes?select=name,message,created_at&order=created_at.desc&limit=24`,
+      { headers: noteHeaders });
+    if (!r.ok) throw new Error();
+    notes = await r.json();
+    renderScraps(ROOMS[0], document.getElementById(`room-${ROOMS[0].id}`));
+  } catch { /* scraps just don't render; the dialog explains on open */ }
+}
+
+const notebook = document.getElementById('notebook');
+const noteForm = document.getElementById('note-form');
+const noteText = document.getElementById('note-text');
+const noteName = document.getElementById('note-name');
+const noteCount = document.getElementById('note-count');
+const noteStatus = document.getElementById('note-status');
+
+function openNotebook() {
+  renderNoteList();
+  noteStatus.textContent = '';
+  notebook.showModal();
+  noteText.focus();
+}
+
+document.getElementById('note-close').addEventListener('click', () => notebook.close());
+noteText.addEventListener('input', () => {
+  noteCount.textContent = `${140 - noteText.value.length} left`;
+});
+
+noteForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const message = noteText.value.trim();
+  if (!message) return;
+  const name = noteName.value.trim() || null;
+  noteStatus.textContent = 'pinning…';
+  try {
+    const r = await fetch(`${GUESTBOOK.url}/rest/v1/guestbook_notes`, {
+      method: 'POST',
+      headers: { ...noteHeaders, 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ name, message }),
+    });
+    if (!r.ok) throw new Error();
+    notes.unshift({ name, message, created_at: new Date().toISOString() });
+    renderNoteList();
+    renderScraps(ROOMS[0], document.getElementById(`room-${ROOMS[0].id}`));
+    noteForm.reset();
+    noteCount.textContent = '140 left';
+    noteStatus.textContent = 'pinned. thanks for stopping by ✨';
+  } catch {
+    noteStatus.textContent = "the notebook won't open right now — your note didn't save. try again in a bit?";
+  }
+});
 
 function renderList(projects) {
   listEl.innerHTML = '';
@@ -679,6 +931,7 @@ async function load() {
 }
 
 load();
+loadNotes();
 </script>
 </body>
 </html>
