@@ -1,9 +1,19 @@
 {
   "_what": "One place to manage what repo sits on which object in the room.",
-  "_how": "Under pins, add a line per repo: \"repo-name\": \"spot\". A repo listed here shows up in the room even without any github topic. \"repo-name\": \"hide\" keeps a repo out of the room entirely. Repos not listed here still work the old way: topic 'room' to appear, topic 'on-couch' (etc.) to pin. This file always wins over topics.",
+  "_how": "Under pins, add a line per repo. Simple form: \"repo-name\": \"spot\". Fancy form: \"repo-name\": { \"spot\": \"couch\", \"name\": \"...\", \"blurb\": \"...\", \"url\": \"...\" } — name/blurb/url are optional and override what github says. \"repo-name\": \"hide\" keeps a repo out of the room entirely. Repos not listed here still work the old way: topic 'room' to appear, topic 'on-couch' (etc.) to pin. This file always wins over topics.",
   "_spots": ["mirror", "fireplace", "couch", "shelves", "tv", "sideboard", "prints", "desk", "rug"],
-  "_note": "The page reads github's public api, so private repos can't appear.",
+  "_note": "The page reads github's public api, so a private repo only shows up if it's listed here — and then only its name/blurb/url from this file are shown (pick a url visitors can actually open; the repo link 404s for anyone but you).",
   "pins": {
-    "room": "desk"
+    "italia-trip": {
+      "spot": "prints",
+      "name": "Italia Trip",
+      "blurb": "Eleven October days in Italy, planned down to the trains."
+    },
+    "stay-the-hire": {
+      "spot": "desk",
+      "name": "Stay the Hire",
+      "blurb": "A deck-builder about surviving meetings, reorgs and the corporate ladder."
+    },
+    "room": "shelves"
   }
 }

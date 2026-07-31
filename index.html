@@ -1247,8 +1247,9 @@ async function loadPins() {
     if (!r.ok) return {};
     const data = await r.json();
     const pins = {};
-    for (const [repo, spot] of Object.entries(data.pins || {})) {
-      if (typeof spot === 'string') pins[repo.toLowerCase()] = spot.toLowerCase();
+    for (const [repo, v] of Object.entries(data.pins || {})) {
+      if (typeof v === 'string') pins[repo.toLowerCase()] = { spot: v.toLowerCase() };
+      else if (v && typeof v === 'object') pins[repo.toLowerCase()] = { ...v, spot: String(v.spot || '').toLowerCase() };
     }
     return pins;
   } catch { return {}; }
@@ -1285,31 +1286,46 @@ async function load() {
       return;
     }
   }
-  const mine = (Array.isArray(repos) ? repos : [])
+  const fromData = (Array.isArray(repos) ? repos : [])
     .filter(x => !x.archived)
     .filter(x => (x.topics || []).includes('room') || x.name.toLowerCase() in pins)
-    .filter(x => pins[x.name.toLowerCase()] !== 'hide');
-  if (!mine.length) {
-    statusEl.textContent = 'nothing is listed in projects.json or tagged “room” yet, so these are pretend projects for now.';
-    return;
-  }
-  render(mine.map(x => {
-    const filePin = pins[x.name.toLowerCase()];
+    .filter(x => pins[x.name.toLowerCase()]?.spot !== 'hide');
+  const projects = fromData.map(x => {
+    const p = pins[x.name.toLowerCase()] || {};
     return {
-      name: titleCase(x.name),
-      blurb: x.description || 'no description yet. mysterious.',
-      /* a private repo's github url would 404 for guests: prefer its
-         website, then a copy hosted in this repo under projects/<name>/,
-         and otherwise show it without a link */
-      url: x.homepage || (x.hosted ? `projects/${x.name}/` : (!x.private ? x.html_url : null)),
+      name: p.name || titleCase(x.name),
+      blurb: p.blurb || x.description || 'no description yet. mysterious.',
+      /* a private repo's github url would 404 for guests: prefer the
+         url from projects.json, then the repo's website, then a copy
+         hosted here under projects/<name>/, else show it linkless */
+      url: p.url || x.homepage || (x.hosted ? `projects/${x.name}/` : (!x.private ? x.html_url : null)),
       pushed: x.pushed_at,
       priv: !!x.private,
-      pin: validSpot(filePin) ? filePin : (x.topics || [])
+      pin: validSpot(p.spot) ? p.spot : (x.topics || [])
         .map(t => (t.match(/^on-(.+)$/) || [])[1])
         .find(validSpot) || null,
     };
-  }));
-  statusEl.textContent = `${mine.length} thing${mine.length > 1 ? 's' : ''} · fresh from github.`;
+  });
+  /* pinned repos the data source didn't return (private ones, before
+     the snapshot secret exists) still show, straight from the file */
+  const seen = new Set(fromData.map(x => x.name.toLowerCase()));
+  for (const [repo, p] of Object.entries(pins)) {
+    if (seen.has(repo) || p.spot === 'hide') continue;
+    projects.push({
+      name: p.name || titleCase(repo),
+      blurb: p.blurb || 'a project kept off the public shelf.',
+      url: p.url || null,
+      pushed: null,
+      priv: true,
+      pin: validSpot(p.spot) ? p.spot : null,
+    });
+  }
+  if (!projects.length) {
+    statusEl.textContent = 'nothing is listed in projects.json or tagged “room” yet, so these are pretend projects for now.';
+    return;
+  }
+  render(projects);
+  statusEl.textContent = `${projects.length} thing${projects.length > 1 ? 's' : ''} · fresh from github.`;
 }
 
 /* the room remembers you (locally — nothing leaves your browser) */
