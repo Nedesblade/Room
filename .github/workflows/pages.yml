@@ -26,12 +26,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       # Reads ALL repos (private included) with a fine-grained read-only
-      # PAT stored as the PROJECTS_TOKEN secret, and publishes only the
-      # display fields the page needs. Without the secret this step is a
-      # no-op and the page falls back to the live public api.
+      # PAT stored as the PROJECTS_TOKEN secret (or ROOM_REPOS_TOKEN —
+      # either name works), and publishes only the display fields the
+      # page needs. Without a secret this step is a no-op and the page
+      # falls back to the live public api.
       - name: Build project snapshot
         env:
-          PROJECTS_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
+          PROJECTS_TOKEN: ${{ secrets.PROJECTS_TOKEN || secrets.ROOM_REPOS_TOKEN }}
         run: |
           python3 - <<'EOF'
           import datetime, json, os, urllib.request
