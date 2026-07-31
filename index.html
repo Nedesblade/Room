@@ -1181,8 +1181,9 @@ async function loadPins() {
     if (!r.ok) return {};
     const data = await r.json();
     const pins = {};
-    for (const [repo, spot] of Object.entries(data.pins || {})) {
-      if (typeof spot === 'string') pins[repo.toLowerCase()] = spot.toLowerCase();
+    for (const [repo, v] of Object.entries(data.pins || {})) {
+      if (typeof v === 'string') pins[repo.toLowerCase()] = { spot: v.toLowerCase() };
+      else if (v && typeof v === 'object') pins[repo.toLowerCase()] = { ...v, spot: String(v.spot || '').toLowerCase() };
     }
     return pins;
   } catch { return {}; }
@@ -1200,27 +1201,41 @@ async function load() {
     const r = await fetch(`https://api.github.com/users/${USERNAME}/repos?per_page=100&sort=updated&type=owner`);
     if (!r.ok) throw new Error();
     const repos = await r.json();
-    const mine = (Array.isArray(repos) ? repos : [])
+    const fromApi = (Array.isArray(repos) ? repos : [])
       .filter(x => !x.archived)
       .filter(x => (x.topics || []).includes('room') || x.name.toLowerCase() in pins)
-      .filter(x => pins[x.name.toLowerCase()] !== 'hide');
-    if (!mine.length) {
-      statusEl.textContent = 'nothing is listed in projects.json or tagged “room” yet, so these are pretend projects for now.';
-      return;
-    }
-    render(mine.map(x => {
-      const filePin = pins[x.name.toLowerCase()];
+      .filter(x => pins[x.name.toLowerCase()]?.spot !== 'hide');
+    const projects = fromApi.map(x => {
+      const p = pins[x.name.toLowerCase()] || {};
       return {
-        name: titleCase(x.name),
-        blurb: x.description || 'no description yet. mysterious.',
-        url: x.homepage || x.html_url,
+        name: p.name || titleCase(x.name),
+        blurb: p.blurb || x.description || 'no description yet. mysterious.',
+        url: p.url || x.homepage || x.html_url,
         pushed: x.pushed_at,
-        pin: validSpot(filePin) ? filePin : (x.topics || [])
+        pin: validSpot(p.spot) ? p.spot : (x.topics || [])
           .map(t => (t.match(/^on-(.+)$/) || [])[1])
           .find(validSpot) || null,
       };
-    }));
-    statusEl.textContent = `${mine.length} thing${mine.length > 1 ? 's' : ''} · fresh from github.`;
+    });
+    /* repos github didn't return (private ones, mostly) still show if
+       they're listed in projects.json — with whatever the file says */
+    const seen = new Set(fromApi.map(x => x.name.toLowerCase()));
+    for (const [repo, p] of Object.entries(pins)) {
+      if (seen.has(repo) || p.spot === 'hide') continue;
+      projects.push({
+        name: p.name || titleCase(repo),
+        blurb: p.blurb || 'a project kept off the public shelf.',
+        url: p.url || `https://github.com/${USERNAME}/${repo}`,
+        pushed: null,
+        pin: validSpot(p.spot) ? p.spot : null,
+      });
+    }
+    if (!projects.length) {
+      statusEl.textContent = 'nothing is listed in projects.json or tagged “room” yet, so these are pretend projects for now.';
+      return;
+    }
+    render(projects);
+    statusEl.textContent = `${projects.length} thing${projects.length > 1 ? 's' : ''} · fresh from github.`;
   } catch {
     statusEl.textContent = "couldn't reach github just now, so these are pretend projects.";
   }
