@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - claude/bedroom-photo-landing-page-g36hdn
+      - claude/room-object-repo-mapping-f5qlxk
   workflow_dispatch:
 
 permissions:
