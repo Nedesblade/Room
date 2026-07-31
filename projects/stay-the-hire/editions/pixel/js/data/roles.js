@@ -1,0 +1,49 @@
+/* Stay the Hire — starter roles. Each: starting deck, passive, base stats.
+   Passives are implemented in the engine via the `passive` id. */
+(function (g) {
+  g.STH = g.STH || {};
+  const base = ['status_update','status_update','status_update','status_update',
+                'set_boundaries','set_boundaries','set_boundaries','set_boundaries'];
+  g.STH.ROLES = [
+    { id:'intern', name:'The New Hire', icon:'🐣',
+      passive:'nothing_to_lose', passiveText:'Nothing to Lose — draw 6 cards per turn instead of 5, but start with 40 Reputation.',
+      deck:[...base,'eager_volunteer','eager_volunteer','dumb_question'],
+      stats:{ maxStress:100, rep:40, pc:2, handSize:6 },
+      blurb:'Badge photo taken mid-blink. Lanyard longer than their tenure. Asks the questions everyone else is afraid to.' },
+    { id:'analyst', name:'The Overprepared Analyst', icon:'📚',
+      passive:'first_prod_free', passiveText:'Pivot Table — the first Productivity card you play each turn costs 1 less.',
+      deck:[...base,'weaponized_spreadsheet','requirements_doc','requirements_doc'],
+      stats:{ maxStress:100, rep:50, pc:2, handSize:5 },
+      blurb:'Brought three binders to a meeting with no agenda. One binder is labeled “CONTINGENCIES.” It has tabs.' },
+    { id:'developer', name:'The Quiet Competent One', icon:'☕',
+      passive:'deep_focus', passiveText:'Deep Focus — every 3rd turn, gain 2 Deep Work.',
+      deck:[...base,'ship_it','refactor','refactor'],
+      stats:{ maxStress:110, rep:50, pc:1, handSize:5 },
+      blurb:'Soft cardigan, tired eyes, tiny coffee. Keeps four systems alive and has never once been thanked by name.' },
+    { id:'support', name:'The People Pleaser', icon:'🎧',
+      passive:'thick_skin', passiveText:'Thick Skin — gain 2 Trust at the start of each turn.',
+      deck:[...base,'deescalate','deescalate','ticket_triage'],
+      stats:{ maxStress:120, rep:50, pc:2, handSize:5 },
+      blurb:'Smiling slightly too hard while carrying everyone’s tasks. Has been yelled at by strangers professionally; nothing in this building scares them.' },
+    { id:'marketing', name:'The Chronically Online Marketer', icon:'📣',
+      passive:'personal_brand_boost', passiveText:'On Message — gain 1 Reputation after every combat.',
+      deck:[...base,'hype_cycle','hype_cycle','rebrand'],
+      stats:{ maxStress:95, rep:55, pc:2, handSize:5 },
+      blurb:'Can make a spreadsheet feel like a movement. Knows what’s trending before it trends. Sleeps with one notification eye open.' },
+    { id:'sales', name:'The Golden Retriever of Sales', icon:'🐕',
+      passive:'commission', passiveText:'Commission — gain 1 Political Capital after every combat.',
+      deck:[...base,'always_be_closing','always_be_closing','charm_offensive'],
+      stats:{ maxStress:95, rep:50, pc:3, handSize:5 },
+      blurb:'Treats “no” as the opening bid. Remembers your kid’s birthday. Expense reports are creative writing.' },
+    { id:'coordinator', name:'The Sticky-Note Goblin', icon:'🗒️',
+      passive:'roadmap', passiveText:'Roadmap — draw 1 extra card on your first turn each combat.',
+      deck:[...base,'stakeholder_sync','stakeholder_sync','prioritize'],
+      stats:{ maxStress:100, rep:50, pc:2, handSize:5 },
+      blurb:'Owns the roadmap. The roadmap is a shared hallucination, but it is THEIR shared hallucination, color-coded by grief.' },
+    { id:'data', name:'The Spreadsheet Cryptid', icon:'🔢',
+      passive:'insight', passiveText:'Insight — the first debuff you apply to an enemy each combat gets +1 stack.',
+      deck:[...base,'query_everything','correlation','correlation'],
+      stats:{ maxStress:100, rep:50, pc:2, handSize:5 },
+      blurb:'Asked for one dashboard. Built nine. Rarely seen in daylight. Trusts no number they didn’t compute themselves.' }
+  ];
+})(typeof window !== 'undefined' ? window : globalThis);
