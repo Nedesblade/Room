@@ -17,7 +17,8 @@
 #   2. Settings → Secrets and variables → Actions → New repository secret:
 #      name ROOM_PUSH_TOKEN, value = a fine-grained personal access token
 #      with "Contents: read and write" on the Room repo only.
-#      (You can reuse the same token you made for PROJECTS_TOKEN.)
+#      (Note: this must be a DIFFERENT token than the read-only one in
+#      the Room repo's ROOM_REPOS_TOKEN — this one needs write access.)
 
 name: Publish to the room
 
@@ -40,7 +41,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: Nedesblade/Room
-          ref: claude/bedroom-photo-landing-page-g36hdn
+          ref: main
           token: ${{ secrets.ROOM_PUSH_TOKEN }}
           path: room
 
