@@ -1,0 +1,9 @@
+{
+  "_what": "One place to manage what repo sits on which object in the room.",
+  "_how": "Under pins, add a line per repo: \"repo-name\": \"spot\". A repo listed here shows up in the room even without any github topic. \"repo-name\": \"hide\" keeps a repo out of the room entirely. Repos not listed here still work the old way: topic 'room' to appear, topic 'on-couch' (etc.) to pin. This file always wins over topics.",
+  "_spots": ["mirror", "fireplace", "couch", "shelves", "tv", "sideboard", "prints", "desk", "rug"],
+  "_note": "The page reads github's public api, so private repos can't appear.",
+  "pins": {
+    "room": "desk"
+  }
+}
