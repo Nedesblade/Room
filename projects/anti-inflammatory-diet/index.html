@@ -5,69 +5,360 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Anti-Inflammatory Diet</title>
 <style>
-  :root { color-scheme: light dark; }
+  :root {
+    --bg: #16130f;
+    --panel: #201b15;
+    --panel-2: #282219;
+    --ink: #ece4d8;
+    --ink-dim: #b3a894;
+    --amber: #ffb474;
+    --green: #9dc98a;
+    --yellow: #e8c46a;
+    --red: #e08a7a;
+    --line: rgba(236,228,216,0.1);
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #faf5ec;
+      --panel: #ffffff;
+      --panel-2: #f3ecdf;
+      --ink: #33291d;
+      --ink-dim: #7d7160;
+      --amber: #c26a1e;
+      --green: #4d7c3a;
+      --yellow: #9a7715;
+      --red: #ad4a37;
+      --line: rgba(51,41,29,0.12);
+    }
+  }
+  * { box-sizing: border-box; }
   body {
-    margin: 0 auto;
-    max-width: 42rem;
-    padding: 2.5rem 1.25rem 4rem;
-    font: 1.05rem/1.65 Georgia, 'Times New Roman', serif;
-    background: #faf6ef;
-    color: #2e2a24;
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 1rem/1.55 Georgia, 'Times New Roman', serif;
   }
-  @media (prefers-color-scheme: dark) {
-    body { background: #14120f; color: #e8e2d6; }
-    a { color: #ffb474; }
+  .wrap { max-width: 46rem; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+  header h1 { font-size: 1.6rem; margin: 0.5rem 0 0.1rem; }
+  header p { margin: 0 0 1.2rem; color: var(--ink-dim); font-style: italic; }
+
+  nav { display: flex; gap: 0.4rem; margin-bottom: 1.3rem; flex-wrap: wrap; }
+  nav button {
+    font: inherit; font-size: 0.95rem;
+    padding: 0.45rem 1rem;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--ink-dim);
+    cursor: pointer;
   }
-  h1, h2, h3 { line-height: 1.25; font-weight: 650; }
-  h1 { font-size: 1.7rem; margin-bottom: 0.3rem; }
-  h2 { font-size: 1.25rem; margin-top: 2rem; }
-  li { margin: 0.3rem 0; }
-  code { font-family: ui-monospace, monospace; font-size: 0.92em; }
-  .note { font-size: 0.85rem; opacity: 0.65; margin-top: 3rem; }
-  a { color: #b05e1e; }
+  nav button[aria-selected="true"] { background: var(--amber); border-color: var(--amber); color: #241505; font-weight: 600; }
+  @media (prefers-color-scheme: light) { nav button[aria-selected="true"] { color: #fff; } }
+
+  section[hidden] { display: none; }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 1rem 1.1rem;
+    margin-bottom: 1rem;
+  }
+
+  /* today */
+  .progress { display: flex; align-items: center; gap: 0.9rem; margin-bottom: 0.6rem; }
+  .ring { position: relative; width: 64px; height: 64px; flex: none; }
+  .ring svg { transform: rotate(-90deg); }
+  .ring .track { stroke: var(--panel-2); }
+  .ring .fill { stroke: var(--green); stroke-linecap: round; transition: stroke-dashoffset 0.4s; }
+  .ring .num { position: absolute; inset: 0; display: grid; place-items: center; font-size: 0.85rem; font-weight: 700; }
+  .streak { color: var(--ink-dim); font-size: 0.9rem; }
+  ul.check { list-style: none; margin: 0; padding: 0; }
+  ul.check li { border-top: 1px solid var(--line); }
+  ul.check li:first-child { border-top: none; }
+  ul.check label { display: flex; gap: 0.7rem; align-items: baseline; padding: 0.55rem 0.1rem; cursor: pointer; }
+  ul.check input { transform: translateY(2px) scale(1.15); accent-color: var(--green); flex: none; }
+  ul.check .why { display: block; font-size: 0.83rem; color: var(--ink-dim); }
+  ul.check input:checked ~ span .what { text-decoration: line-through; text-decoration-color: var(--green); opacity: 0.7; }
+
+  /* foods */
+  .search {
+    width: 100%;
+    font: inherit;
+    padding: 0.55rem 0.9rem;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--ink);
+    margin-bottom: 1rem;
+  }
+  .tier h2 { font-size: 1.02rem; margin: 0 0 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .tier.go .dot { background: var(--green); }
+  .tier.easy .dot { background: var(--yellow); }
+  .tier.rare .dot { background: var(--red); }
+  .chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .chip {
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.2rem 0.7rem;
+    font-size: 0.88rem;
+  }
+  .chip small { color: var(--ink-dim); }
+  .none { color: var(--ink-dim); font-style: italic; font-size: 0.9rem; }
+
+  /* meals */
+  .meal h2 { font-size: 1.02rem; margin: 0 0 0.2rem; color: var(--amber); }
+  .meal p { margin: 0.15rem 0; }
+  .shuffle {
+    font: inherit;
+    padding: 0.55rem 1.2rem;
+    border-radius: 999px;
+    border: none;
+    background: var(--amber);
+    color: #241505;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 1rem;
+  }
+  @media (prefers-color-scheme: light) { .shuffle { color: #fff; } }
+
+  footer { margin-top: 2.5rem; font-size: 0.8rem; color: var(--ink-dim); }
+  footer a { color: var(--amber); }
 </style>
 </head>
 <body>
-<main id="content"><p>Loading the notes…</p></main>
-<p class="note">Served from the <a href="https://nedesblade.github.io/Room/">room</a>'s sideboard.</p>
+<div class="wrap">
+<header>
+  <h1>Anti-Inflammatory Diet</h1>
+  <p>what I eat to keep the fires down</p>
+</header>
+
+<nav role="tablist">
+  <button role="tab" aria-selected="true" data-tab="today">Today</button>
+  <button role="tab" aria-selected="false" data-tab="foods">Food guide</button>
+  <button role="tab" aria-selected="false" data-tab="meals">Meal ideas</button>
+</nav>
+
+<section id="today">
+  <div class="card">
+    <div class="progress">
+      <div class="ring">
+        <svg width="64" height="64" viewBox="0 0 64 64">
+          <circle class="track" cx="32" cy="32" r="27" fill="none" stroke-width="7"/>
+          <circle class="fill" id="ring-fill" cx="32" cy="32" r="27" fill="none" stroke-width="7"/>
+        </svg>
+        <span class="num" id="ring-num">0/0</span>
+      </div>
+      <div>
+        <strong id="cheer">A fresh day.</strong>
+        <div class="streak" id="streak"></div>
+      </div>
+    </div>
+    <ul class="check" id="habit-list"></ul>
+  </div>
+</section>
+
+<section id="foods" hidden>
+  <input class="search" id="food-search" type="search" placeholder="search a food… (e.g. salmon, sugar, rice)">
+  <div class="card tier go"><h2><span class="dot"></span>Eat freely</h2><div class="chips" data-tier="go"></div></div>
+  <div class="card tier easy"><h2><span class="dot"></span>Easy does it</h2><div class="chips" data-tier="easy"></div></div>
+  <div class="card tier rare"><h2><span class="dot"></span>Keep rare</h2><div class="chips" data-tier="rare"></div></div>
+</section>
+
+<section id="meals" hidden>
+  <button class="shuffle" id="shuffle">Shuffle the day's plate</button>
+  <div class="card meal"><h2>Breakfast</h2><p id="m-breakfast"></p></div>
+  <div class="card meal"><h2>Lunch</h2><p id="m-lunch"></p></div>
+  <div class="card meal"><h2>Dinner</h2><p id="m-dinner"></p></div>
+  <div class="card meal"><h2>Snack</h2><p id="m-snack"></p></div>
+</section>
+
+<footer>
+  General food guidance, not medical advice — talk to a professional about what's right for you.
+  Checklist lives in your browser only; nothing is sent anywhere.
+  Served from the <a href="https://nedesblade.github.io/Room/">room</a>'s sideboard.
+</footer>
+</div>
+
 <script>
-/* Renders README.md so updating the page is just editing the README.
-   Tiny converter — headings, lists, bold/italic, links, code, paragraphs. */
-function md(src) {
-  const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const inline = s => esc(s)
-    .replace(/`([^`]+)`/g, '<code>$1</code>')
-    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2">$1</a>');
-  const out = [];
-  let list = null, para = [];
-  const flushPara = () => { if (para.length) { out.push('<p>' + para.join(' ') + '</p>'); para = []; } };
-  const flushList = () => { if (list) { out.push(`</${list}>`); list = null; } };
-  for (const line of src.split(/\r?\n/)) {
-    const h = line.match(/^(#{1,4})\s+(.*)/);
-    const ul = line.match(/^\s*[-*]\s+(.*)/);
-    const ol = line.match(/^\s*\d+[.)]\s+(.*)/);
-    if (h) { flushPara(); flushList(); out.push(`<h${h[1].length}>${inline(h[2])}</h${h[1].length}>`); }
-    else if (ul || ol) {
-      flushPara();
-      const want = ul ? 'ul' : 'ol';
-      if (list !== want) { flushList(); out.push(`<${want}>`); list = want; }
-      out.push('<li>' + inline((ul || ol)[1]) + '</li>');
-    }
-    else if (!line.trim()) { flushPara(); flushList(); }
-    else para.push(inline(line));
+/* ---- daily checklist (localStorage, resets each day) ---------------- */
+const HABITS = [
+  { id: 'greens',  what: 'A serving of leafy greens', why: 'spinach, kale, rocket — the daily base layer' },
+  { id: 'berries', what: 'Berries or colorful fruit', why: 'polyphenols do quiet good work' },
+  { id: 'oil',     what: 'Olive oil as the main fat', why: 'extra-virgin, over butter and seed-oil blends' },
+  { id: 'omega3',  what: 'Oily fish, walnuts or flax', why: 'omega-3s — salmon, sardines, chia count too' },
+  { id: 'grains',  what: 'Whole grains over white',   why: 'oats, brown rice, quinoa instead of refined' },
+  { id: 'spice',   what: 'Something spiced',          why: 'turmeric, ginger, garlic, cinnamon' },
+  { id: 'nosugar', what: 'No sugary drinks',          why: 'the single easiest win of the day' },
+  { id: 'noupf',   what: 'No ultra-processed snacks', why: 'if the label reads like a chemistry set, skip it' },
+];
+
+const todayKey = () => 'aid-day-' + new Date().toISOString().slice(0, 10);
+const load = k => { try { return JSON.parse(localStorage.getItem(k)) || {}; } catch { return {}; } };
+const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+
+function renderHabits() {
+  const state = load(todayKey());
+  const ul = document.getElementById('habit-list');
+  ul.innerHTML = '';
+  for (const h of HABITS) {
+    const li = document.createElement('li');
+    const label = document.createElement('label');
+    const box = document.createElement('input');
+    box.type = 'checkbox';
+    box.checked = !!state[h.id];
+    box.addEventListener('change', () => {
+      const s = load(todayKey());
+      s[h.id] = box.checked;
+      save(todayKey(), s);
+      updateProgress();
+    });
+    const span = document.createElement('span');
+    span.innerHTML = `<span class="what"></span><span class="why"></span>`;
+    span.querySelector('.what').textContent = h.what;
+    span.querySelector('.why').textContent = h.why;
+    label.append(box, span);
+    li.appendChild(label);
+    ul.appendChild(li);
   }
-  flushPara(); flushList();
-  return out.join('\n');
+  updateProgress();
 }
-fetch('README.md', { cache: 'no-cache' })
-  .then(r => { if (!r.ok) throw new Error(); return r.text(); })
-  .then(text => { document.getElementById('content').innerHTML = md(text); })
-  .catch(() => {
-    document.getElementById('content').innerHTML =
-      '<h1>Anti-Inflammatory Diet</h1><p>The notes are still being written — check back soon.</p>';
+
+function updateProgress() {
+  const state = load(todayKey());
+  const done = HABITS.filter(h => state[h.id]).length;
+  const total = HABITS.length;
+  const r = 27, c = 2 * Math.PI * r;
+  const fill = document.getElementById('ring-fill');
+  fill.style.strokeDasharray = c;
+  fill.style.strokeDashoffset = c * (1 - done / total);
+  document.getElementById('ring-num').textContent = `${done}/${total}`;
+  document.getElementById('cheer').textContent =
+    done === total ? 'A perfect plate of a day.' :
+    done >= total * 0.6 ? 'The fires are dying down.' :
+    done > 0 ? 'Good — keep going.' : 'A fresh day.';
+
+  /* streak: consecutive past days with 60%+ done */
+  let streak = 0;
+  const d = new Date();
+  for (let i = 0; i < 366; i++) {
+    if (i > 0 || done >= total * 0.6) {
+      const key = 'aid-day-' + d.toISOString().slice(0, 10);
+      const s = load(key);
+      const n = HABITS.filter(h => s[h.id]).length;
+      if (n >= total * 0.6) streak++;
+      else if (i > 0) break;
+      else break;
+    } else break;
+    d.setDate(d.getDate() - 1);
+  }
+  document.getElementById('streak').textContent =
+    streak >= 2 ? `${streak}-day streak 🔥 (the good kind of fire)` :
+    streak === 1 ? 'Day one of a streak.' : '';
+}
+
+/* ---- food guide ----------------------------------------------------- */
+const FOODS = {
+  go: [
+    'Salmon', 'Sardines', 'Mackerel', 'Spinach', 'Kale', 'Rocket', 'Broccoli',
+    'Blueberries', 'Strawberries', 'Cherries', 'Oranges', 'Tomatoes', 'Avocado',
+    'Extra-virgin olive oil', 'Walnuts', 'Almonds', 'Chia seeds', 'Flaxseed',
+    'Lentils', 'Chickpeas', 'Black beans', 'Oats', 'Quinoa', 'Brown rice',
+    'Turmeric', 'Ginger', 'Garlic', 'Cinnamon', 'Green tea', 'Peppers',
+    'Sweet potato', 'Mushrooms', 'Olives', 'Dark chocolate (85%+)',
+  ],
+  easy: [
+    'Chicken', 'Turkey', 'Eggs', 'Greek yogurt', 'Kefir', 'Cheese', 'Butter',
+    'White rice', 'Pasta', 'Sourdough bread', 'Potatoes', 'Honey', 'Red wine',
+    'Coffee', 'Dried fruit', 'Corn', 'Tofu', 'Peanut butter',
+  ],
+  rare: [
+    'Sugary drinks', 'Candy & sweets', 'Pastries', 'White bread', 'Chips & crisps',
+    'Processed meat (bacon, salami, hot dogs)', 'Deep-fried food', 'Margarine',
+    'Instant noodles', 'Ice cream', 'Energy drinks', 'Excess alcohol',
+    'Packaged snack cakes', 'Sweetened cereals',
+  ],
+};
+
+function renderFoods(filter = '') {
+  const q = filter.trim().toLowerCase();
+  for (const [tier, items] of Object.entries(FOODS)) {
+    const el = document.querySelector(`[data-tier="${tier}"]`);
+    el.innerHTML = '';
+    const hits = items.filter(f => f.toLowerCase().includes(q));
+    for (const f of hits) {
+      const chip = document.createElement('span');
+      chip.className = 'chip';
+      chip.textContent = f;
+      el.appendChild(chip);
+    }
+    if (!hits.length) {
+      const none = document.createElement('span');
+      none.className = 'none';
+      none.textContent = 'nothing here matches.';
+      el.appendChild(none);
+    }
+  }
+}
+document.getElementById('food-search').addEventListener('input', e => renderFoods(e.target.value));
+
+/* ---- meal ideas ------------------------------------------------------ */
+const MEALS = {
+  breakfast: [
+    'Overnight oats with blueberries, chia and walnuts',
+    'Greek yogurt with berries, cinnamon and flaxseed',
+    'Scrambled eggs on sourdough with spinach and tomatoes',
+    'Porridge with grated apple, cinnamon and almonds',
+    'Avocado on sourdough with olive oil and chili flakes',
+  ],
+  lunch: [
+    'Lentil soup with garlic, turmeric and a swirl of olive oil',
+    'Big salad: rocket, chickpeas, peppers, olives, feta, olive oil',
+    'Sardines on sourdough with tomato and rocket',
+    'Quinoa bowl with roasted broccoli, avocado and tahini',
+    'Chicken and vegetable soup with ginger',
+  ],
+  dinner: [
+    'Baked salmon, sweet potato and steamed broccoli',
+    'Chickpea and spinach curry with turmeric, over brown rice',
+    'Grilled mackerel with roasted peppers and quinoa',
+    'Stir-fry: tofu, mushrooms, ginger, garlic, brown rice',
+    'Bean chili with plenty of tomatoes and a side salad',
+  ],
+  snack: [
+    'A handful of walnuts and a few squares of dark chocolate',
+    'Carrot sticks with hummus',
+    'An orange and a green tea',
+    'Cherries, fresh or frozen',
+    'Almonds and a couple of dates',
+  ],
+};
+
+function shuffleMeals() {
+  for (const [slot, options] of Object.entries(MEALS)) {
+    const el = document.getElementById('m-' + slot);
+    const current = el.textContent;
+    let pick = current;
+    while (options.length > 1 && pick === current) {
+      pick = options[Math.floor(Math.random() * options.length)];
+    }
+    el.textContent = pick;
+  }
+}
+document.getElementById('shuffle').addEventListener('click', shuffleMeals);
+
+/* ---- tabs ------------------------------------------------------------ */
+document.querySelectorAll('nav [role="tab"]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('nav [role="tab"]').forEach(b => b.setAttribute('aria-selected', String(b === btn)));
+    document.querySelectorAll('section').forEach(s => s.hidden = s.id !== btn.dataset.tab);
   });
+});
+
+renderHabits();
+renderFoods();
+shuffleMeals();
 </script>
 </body>
 </html>
