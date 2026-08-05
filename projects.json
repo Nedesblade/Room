@@ -14,6 +14,11 @@
       "name": "Stay the Hire",
       "blurb": "A deck-builder about surviving meetings, reorgs and the corporate ladder."
     },
+    "anti-inflammatory-diet": {
+      "spot": "sideboard",
+      "name": "Anti-Inflammatory Diet",
+      "blurb": "What I eat to keep the fires down — notes and recipes."
+    },
     "room": "shelves"
   }
 }
