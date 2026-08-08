@@ -483,7 +483,7 @@
     color: rgba(255, 193, 138, 0.9);
   }
   .card .meta { margin-left: auto; }
-  .card .enter {
+  .enter {
     display: inline-block;
     background: var(--amber);
     color: #241505;
@@ -494,15 +494,46 @@
     text-decoration: none;
     white-space: nowrap;
   }
-  .card .enter:hover, .card .enter:focus-visible { filter: brightness(1.1); }
-  /* clicking a linkless (private) item pulses the card so the answer
-     never lands somewhere the eye isn't */
-  .card.ping { animation: card-ping 0.9s ease-out; }
-  @keyframes card-ping {
-    0%   { border-color: var(--amber); box-shadow: 0 0 0 3px rgba(255,180,116,0.35); }
-    100% { border-color: rgba(236,228,216,0.08); box-shadow: 0 0 0 0 rgba(255,180,116,0); }
+  .enter:hover, .enter:focus-visible { filter: brightness(1.1); }
+
+  /* ---- the intro card: pops up right next to the object ------------ */
+  .popcard {
+    position: absolute;
+    z-index: 6;
+    width: 240px;
+    max-width: 74vw;
+    background: var(--card);
+    border: 1px solid rgba(236,228,216,0.16);
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+    padding: 0.55rem 0.8rem 0.65rem;
+    transform: translate(-50%, calc(-100% - 13px));
+    animation: pop-in 0.16s ease-out;
   }
-  @media (prefers-reduced-motion: reduce) { .card.ping { animation: none; } }
+  .popcard.below { transform: translate(-50%, 13px); }
+  .popcard::after {
+    content: '';
+    position: absolute;
+    left: var(--caret, 50%);
+    bottom: -6px;
+    width: 10px; height: 10px;
+    background: var(--card);
+    border-right: 1px solid rgba(236,228,216,0.16);
+    border-bottom: 1px solid rgba(236,228,216,0.16);
+    transform: translateX(-50%) rotate(45deg);
+  }
+  .popcard.below::after {
+    bottom: auto; top: -6px;
+    border-right: none; border-bottom: none;
+    border-left: 1px solid rgba(236,228,216,0.16);
+    border-top: 1px solid rgba(236,228,216,0.16);
+  }
+  .popcard h3 { font-size: 0.98rem; font-weight: 620; margin: 0 0 0.1rem; }
+  .popcard .blurb { display: block; color: var(--ink-dim); font-size: 0.85rem; }
+  .popcard .meta { display: block; margin-top: 0.3rem; }
+  .popcard .enter { margin-top: 0.45rem; }
+  @keyframes pop-in { from { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .popcard { animation: none; } }
 
   /* ---- the plain list ---------------------------------------------- */
   .list { margin-top: 3rem; }
@@ -711,13 +742,27 @@ function timeAgo(iso) {
   return 'updated just now';
 }
 
-function showCard(p) {
-  card.innerHTML = '';
-  const h = document.createElement('h2');
-  const a = document.createElement(p.url ? 'a' : 'span');
-  if (p.url) a.href = p.url;
-  a.textContent = p.name;
-  h.appendChild(a);
+/* the intro card that pops up beside whatever object you're on */
+const pop = document.createElement('div');
+pop.className = 'popcard';
+pop.hidden = true;
+let hideTimer = null;
+const cancelHide = () => { clearTimeout(hideTimer); hideTimer = null; };
+const scheduleHide = () => { cancelHide(); hideTimer = setTimeout(hidePop, 250); };
+pop.addEventListener('mouseenter', cancelHide);
+pop.addEventListener('mouseleave', scheduleHide);
+
+function hidePop() {
+  cancelHide();
+  pop.hidden = true;
+  armedSpot = null;
+}
+
+function showPop(p, x, y, room) {
+  cancelHide();
+  pop.innerHTML = '';
+  const h = document.createElement('h3');
+  h.textContent = p.name;
   if (isNew(p.pushed)) {
     const chip = document.createElement('span');
     chip.className = 'newchip'; chip.textContent = 'new';
@@ -725,23 +770,47 @@ function showCard(p) {
   }
   const blurb = document.createElement('span');
   blurb.className = 'blurb'; blurb.textContent = p.blurb;
-  card.append(h, blurb);
-  if (p.url) {
-    const go = document.createElement('a');
-    go.className = 'enter';
-    go.href = p.url;
-    go.textContent = 'step inside ↗';
-    card.append(go);
-  }
+  pop.append(h, blurb);
   const bits = [];
   if (p.pushed) bits.push(timeAgo(p.pushed));
   if (!p.url && p.priv) bits.push('private — ask me about it');
   if (bits.length) {
     const meta = document.createElement('span');
     meta.className = 'meta'; meta.textContent = bits.join(' · ');
-    card.append(meta);
+    pop.append(meta);
+  }
+  if (p.url) {
+    const go = document.createElement('a');
+    go.className = 'enter';
+    go.href = p.url;
+    go.textContent = 'step inside ↗';
+    pop.append(go);
+  }
+  pop.classList.remove('below');
+  pop.style.left = x + '%';
+  pop.style.top = y + '%';
+  pop.style.marginLeft = '0px';
+  pop.style.removeProperty('--caret');
+  if (pop.parentElement !== room) room.appendChild(pop);
+  pop.hidden = false;
+  /* above the dot normally; below it when there isn't room above */
+  const rr = room.getBoundingClientRect();
+  if (pop.getBoundingClientRect().top < rr.top + 4) pop.classList.add('below');
+  /* keep it inside the photo; slide the caret so it still points home */
+  const pr = pop.getBoundingClientRect();
+  let shift = 0;
+  if (pr.left < rr.left + 6) shift = (rr.left + 6) - pr.left;
+  else if (pr.right > rr.right - 6) shift = (rr.right - 6) - pr.right;
+  if (shift) {
+    pop.style.marginLeft = shift + 'px';
+    pop.style.setProperty('--caret', `calc(50% - ${shift}px)`);
   }
 }
+
+document.addEventListener('pointerdown', e => {
+  if (!pop.hidden && !pop.contains(e.target) && !e.target.closest('.spot')) hidePop();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') hidePop(); });
 
 /* a guestbook note shown in the same caption spot */
 function showNoteCard(n) {
@@ -1066,8 +1135,8 @@ function renderRoom(roomData, projects) {
     a.id = `spot-${spot.id}`;
     if (p.url) {
       a.href = p.url;
-      /* touch has no hover-preview: the first tap shows the card instead
-         of teleporting, and only the second tap (or the card's own
+      /* touch has no hover-preview: the first tap pops the intro card
+         by the object, and only the second tap (or the card's own
          "step inside" button) actually goes. Hover devices previewed
          already, so their click passes straight through. */
       a.addEventListener('click', e => {
@@ -1075,17 +1144,11 @@ function renderRoom(roomData, projects) {
         if (armedSpot === p) return;
         e.preventDefault();
         armedSpot = p;
-        showCard(p);
-        card.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-        card.classList.remove('ping'); void card.offsetWidth; card.classList.add('ping');
+        showPop(p, spot.x, spot.y, room);
       });
     } else {
       a.type = 'button';
-      a.addEventListener('click', () => {
-        showCard(p);
-        card.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-        card.classList.remove('ping'); void card.offsetWidth; card.classList.add('ping');
-      });
+      a.addEventListener('click', () => showPop(p, spot.x, spot.y, room));
     }
     a.setAttribute('aria-label', `${p.name} — ${p.blurb}${p.url ? '' : ' (private project)'}`);
     a.style.cssText = `left:${bl}%;top:${bt}%;width:${bw}%;height:${bh}%`;
@@ -1103,8 +1166,10 @@ function renderRoom(roomData, projects) {
       tag.appendChild(chip);
     }
     a.append(dot, tag);
-    a.addEventListener('mouseenter', () => showCard(p));
-    a.addEventListener('focus', () => showCard(p));
+    a.addEventListener('mouseenter', () => showPop(p, spot.x, spot.y, room));
+    a.addEventListener('focus', () => showPop(p, spot.x, spot.y, room));
+    a.addEventListener('mouseleave', scheduleHide);
+    a.addEventListener('blur', scheduleHide);
     room.appendChild(a);
     i++;
   }
@@ -1283,7 +1348,8 @@ function applyHash() {
   if (!spotEl) return;
   spotEl.classList.add('lit');
   const proj = current.find(x => x._spot === id);
-  if (proj) showCard(proj);
+  const spotData = ROOMS[0].spots.find(s => s.id === id);
+  if (proj && spotData) showPop(proj, spotData.x, spotData.y, spotEl.closest('.room'));
   spotEl.scrollIntoView({ block: 'center', behavior: 'auto' });
 }
 window.addEventListener('hashchange', applyHash);
