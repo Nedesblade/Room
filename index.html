@@ -59,25 +59,27 @@
     body { background-attachment: fixed; }
   }
 
-  .wrap { max-width: 720px; margin: 0 auto; padding: 3.5rem 1.25rem 4rem; }
-
-  header h1 {
-    font-size: clamp(1.7rem, 5vw, 2.4rem);
-    font-weight: 640;
-    letter-spacing: -0.015em;
-    margin-bottom: 0.5rem;
+  /* the page is the room: one unscrolling tableau under the sky */
+  html, body { height: 100%; overflow: hidden; }
+  .wrap {
+    height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.6rem;
   }
-  header p { color: var(--ink-dim); max-width: 36rem; }
-  .greeting {
-    margin-top: 0.7rem;
-    font-family: 'Spline Sans Mono', ui-monospace, monospace;
-    font-size: 0.74rem;
-    color: rgba(255, 193, 138, 0.9);
+  /* the words live in the scene now; these stay for screen readers */
+  header {
+    position: absolute;
+    width: 1px; height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
-  .greeting:empty { display: none; }
 
   /* ---- the room ---------------------------------------------------- */
-  .room { position: relative; margin: 2.75rem 0 0; }
+  main { display: contents; }
+  .room { position: relative; width: min(94dvh, 96vw); margin: 0; }
   .room > .photo { display: block; width: 100%; height: auto; aspect-ratio: 1; }
 
   /* ---- life in the drawn room -------------------------------------- */
@@ -155,22 +157,21 @@
     62%      { opacity: calc(0.28 + var(--night) * 0.8); }
   }
 
-  /* the little day/night switch in the room's corner */
+  /* the day/night control is a light switch on the wall */
   .mode-toggle {
     position: absolute;
-    top: 0.9rem; right: 0.9rem;
+    left: 90.2%; top: 46%;
+    width: 3.2%;
     z-index: 2;
-    background: rgba(12, 20, 21, 0.7);
-    border: 1px solid rgba(236, 228, 216, 0.25);
-    border-radius: 999px;
-    color: var(--ink-dim);
-    font-family: 'Spline Sans Mono', ui-monospace, monospace;
-    font-size: 0.68rem;
-    padding: 0.3rem 0.7rem;
+    background: none;
+    border: 0;
+    padding: 0;
     cursor: pointer;
   }
-  .mode-toggle:hover { color: var(--ink); border-color: rgba(255, 180, 116, 0.5); }
-  .mode-toggle:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+  .mode-toggle svg { display: block; width: 100%; height: auto; }
+  .mode-toggle .nub { transition: transform 0.2s ease; transform-box: fill-box; transform-origin: 50% 50%; }
+  .mode-toggle.on .nub { transform: translateY(38%); }
+  .mode-toggle:focus-visible { outline: 2px dashed rgba(236,228,216,0.8); outline-offset: 3px; }
 
   /* embers drifting up from the hearth at night */
   .ember {
@@ -500,34 +501,11 @@
     min-height: 1em;
   }
 
-  /* ---- the caption card -------------------------------------------- */
-  .card {
-    margin-top: 1rem;
-    min-height: 3.2rem;
-    padding: 0.65rem 1rem;
-    background: var(--card);
-    border: 1px solid rgba(236,228,216,0.08);
-    border-radius: 12px;
-    display: flex;
-    align-items: baseline;
-    flex-wrap: wrap;
-    gap: 0.25rem 0.6rem;
-  }
-  .card .hint {
-    color: var(--ink-dim);
-    font-family: 'Spline Sans Mono', ui-monospace, monospace;
-    font-size: 0.74rem;
-  }
-  .card h2 { font-size: 1.02rem; font-weight: 620; display: inline; }
-  .card h2 a { color: var(--ink); text-decoration-color: rgba(255,180,116,0.5); }
-  .card h2 a:hover { color: var(--amber); }
-  .card .blurb { color: var(--ink-dim); font-size: 0.92rem; }
   .meta {
     font-family: 'Spline Sans Mono', ui-monospace, monospace;
     font-size: 0.72rem;
     color: rgba(255, 193, 138, 0.9);
   }
-  .card .meta { margin-left: auto; }
   .enter {
     display: inline-block;
     background: var(--amber);
@@ -576,9 +554,23 @@
   }
   .obj { transition: transform 0.25s ease; }
   .obj.lift { transform: translateY(-1px); }
+  .lay-back { transform: translateX(calc(var(--parx, 0) * -0.06px)); transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.4, 1); }
+  .lay-front { transform: translateX(calc(var(--parx, 0) * 0.12px)); transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.4, 1); }
+  .blackout {
+    position: fixed; inset: 0;
+    background: #050606;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.38s ease-in;
+    z-index: 60;
+  }
+  .blackout.on { opacity: 1; pointer-events: auto; }
 
-  /* poke reactions for objects that carry no project */
-  .poke { position: absolute; background: none; border: 0; cursor: pointer; padding: 0; font: inherit; }
+  /* poke reactions for objects that carry no project.
+     stacking: pokes under project spots, toys and creatures on top */
+  .poke { position: absolute; background: none; border: 0; cursor: pointer; padding: 0; font: inherit; z-index: 1; }
+  .spot { z-index: 2; }
+  .toy, .cat, .scrap { z-index: 3; }
   .poke .tag { opacity: 0; }
   .poke:hover .tag, .poke:focus-visible .tag { opacity: 1; }
   .poke:focus-visible { outline: 2px dashed rgba(236,228,216,0.8); outline-offset: 2px; }
@@ -659,8 +651,41 @@
   .putback:hover, .putback:focus-visible { color: #43362a; }
   @media (prefers-reduced-motion: reduce) { .examine.settled .held { animation: none; } }
 
-  /* ---- the plain list ---------------------------------------------- */
-  .list { margin-top: 3rem; }
+  /* ---- the inventory: an index card that lives in a shelf book ----- */
+  #inventory {
+    background: linear-gradient(172deg, #efe3c8, #e0d1af);
+    color: #43362a;
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 18px 50px rgba(0,0,0,0.55);
+    padding: 1.4rem 1.6rem 1.1rem;
+    width: min(30rem, 92vw);
+    max-height: 82dvh;
+    overflow-y: auto;
+    transform: rotate(-0.8deg);
+  }
+  #inventory::backdrop { background: rgba(5, 8, 8, 0.55); backdrop-filter: blur(2px); }
+  #inventory .list h2 { color: #6d5b47; }
+  #inventory .list a { color: #43362a; text-decoration-color: rgba(179,64,46,0.5); }
+  #inventory .list a:hover { color: #b3402e; }
+  #inventory .list .blurb { color: #6d5b47; }
+  #inventory .list .privname { color: #43362a; }
+  #inventory .list .meta, #inventory .status { color: #8a6f4d; }
+  #inventory .putback { display: block; margin: 0.8rem 0 0 auto; }
+
+  /* the book on the shelf that opens it */
+  .index-book {
+    position: absolute;
+    z-index: 3;
+    background: none; border: 0; padding: 0;
+    cursor: pointer;
+  }
+  .index-book svg { display: block; width: 100%; height: auto; }
+  .index-book:hover svg, .index-book:focus-visible svg { transform: translateY(-6%); }
+  .index-book svg { transition: transform 0.2s ease; }
+  .index-book:focus-visible { outline: 2px dashed rgba(236,228,216,0.8); outline-offset: 2px; }
+
+  .list { margin-top: 0; }
   .list h2 { font-size: 1.05rem; font-weight: 620; color: var(--ink-dim); margin-bottom: 0.9rem; }
   .list ul { list-style: none; }
   .list li { margin-bottom: 0.85rem; }
@@ -684,11 +709,19 @@
   }
   .status:empty { display: none; }
 
+  /* the floor plaque under the diorama */
   footer {
-    margin-top: 4rem;
+    position: fixed;
+    bottom: 0.55rem;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
     font-family: 'Spline Sans Mono', ui-monospace, monospace;
-    font-size: 0.72rem;
-    color: rgba(163,180,182,0.6);
+    font-size: 0.66rem;
+    line-height: 1.5;
+    color: rgba(163,180,182,0.55);
+    pointer-events: none;
+    white-space: nowrap;
   }
 
   /* ---- phones ------------------------------------------------------ */
@@ -718,21 +751,18 @@
 
   <main>
     <div class="room" id="room-living-room">
-      <button type="button" class="mode-toggle" id="mode-toggle" aria-pressed="false"></button>
+      <button type="button" class="mode-toggle" id="mode-toggle" aria-pressed="false" aria-label="the light switch">
+        <svg viewBox="0 0 40 62" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x="2" y="2" width="36" height="58" rx="7" fill="#c6bfa9" stroke="#3a3230" stroke-width="2.4"/>
+          <rect x="13" y="14" width="14" height="34" rx="7" fill="#a89f88" stroke="#3a3230" stroke-width="2"/>
+          <rect class="nub" x="14.5" y="16" width="11" height="15" rx="5.5" fill="#e8d9b8" stroke="#3a3230" stroke-width="2"/>
+        </svg>
+      </button>
       <svg class="photo" id="scene" viewBox="0 0 100 100" role="img"
            aria-label="An illustrated living room: a brick fireplace with a crackling fire, a woven couch, a round red rug with a corgi on it, a small TV showing static, shelves of books, a red sideboard with a little radio, a desk and chair, a round mirror, framed prints on the walls, a leather suitcase by the couch, and a pendant lamp overhead."></svg>
       <div class="grade" aria-hidden="true"></div>
     </div>
 
-    <div class="card" id="card" aria-live="polite">
-      <p class="hint">run your cursor over the amber lights, or tab through them.</p>
-    </div>
-
-    <section class="list" id="projects">
-      <h2>the full inventory</h2>
-      <ul id="project-list"></ul>
-      <p class="status" id="status"></p>
-    </section>
   </main>
 
   <footer>
@@ -740,6 +770,15 @@
     <p id="visit-line"></p>
   </footer>
 </div>
+
+<dialog id="inventory" aria-labelledby="inventory-title">
+  <section class="list" id="projects">
+    <h2 id="inventory-title">the full inventory</h2>
+    <ul id="project-list"></ul>
+    <p class="status" id="status"></p>
+  </section>
+  <button type="button" class="putback" id="inventory-close">put it back</button>
+</dialog>
 
 <dialog id="notebook" aria-labelledby="notebook-title">
   <h2 id="notebook-title">the notebook</h2>
@@ -849,7 +888,6 @@ const EXAMPLES = [
 
 /* ===================================================================== */
 
-const card = document.getElementById('card');
 const listEl = document.getElementById('project-list');
 const statusEl = document.getElementById('status');
 const params = new URLSearchParams(location.search);
@@ -1065,7 +1103,20 @@ function buildScene() {
     <line x1="50.5" y1="0" x2="50.5" y2="35.6" stroke="#3a3230" stroke-width="0.28"/>
     <path d="M44.6 41 L47.6 35.6 h5.8 L56.4 41 Z" fill="#e8c88f" stroke="#3a3230" stroke-width="0.32"/>
     <g stroke="#c9a06a" stroke-width="0.22"><line x1="46.4" y1="40.4" x2="48.6" y2="36"/><line x1="48.6" y1="40.7" x2="49.9" y2="36"/><line x1="52.4" y1="40.7" x2="51.4" y2="36"/><line x1="54.6" y1="40.4" x2="52.6" y2="36"/></g>
-    <circle cx="50.5" cy="41.6" r="0.95" fill="#ffd9a0" stroke="#3a3230" stroke-width="0.22"/>`;
+    <circle cx="50.5" cy="41.6" r="0.95" fill="#ffd9a0" stroke="#3a3230" stroke-width="0.22"/>
+    <g transform="rotate(-2 24 15)">
+      <circle cx="24" cy="6" r="0.5" fill="#3a3230"/>
+      <path d="M24 6 L15.5 12 M24 6 L32.5 12" stroke="#3a3230" stroke-width="0.22" fill="none"/>
+      <rect x="13" y="12" width="22" height="7.6" rx="1" fill="#a67c52" stroke="#3a3230" stroke-width="0.4"/>
+      <rect x="13.8" y="12.8" width="20.4" height="6" rx="0.6" fill="none" stroke="#7d5b3a" stroke-width="0.22"/>
+      <text x="24" y="15.3" text-anchor="middle" font-size="1.7" font-family="Spline Sans Mono, monospace" fill="#f0e6d2">hello — you've</text>
+      <text x="24" y="17.7" text-anchor="middle" font-size="1.7" font-family="Spline Sans Mono, monospace" fill="#f0e6d2">found my room</text>
+    </g>
+    <g transform="rotate(-1 50 96)">
+      <rect x="41" y="93.6" width="18" height="4.6" rx="1.4" fill="#a05c3e" stroke="#3a3230" stroke-width="0.4"/>
+      <rect x="42" y="94.4" width="16" height="3" rx="0.8" fill="none" stroke="#7a4029" stroke-width="0.25" stroke-dasharray="0.7 0.5"/>
+      <text x="50" y="96.6" text-anchor="middle" font-size="1.5" font-family="Spline Sans Mono, monospace" fill="#f0e6d2">welcome</text>
+    </g>`;
   const bySpot = Object.fromEntries(ROOMS[0].spots.map(s => [s.id, s]));
   const objects = SCENE_ORDER.map(id => {
     const s = bySpot[id];
@@ -1075,7 +1126,10 @@ function buildScene() {
     return `<svg class="obj" id="obj-${s.id}" x="${bl}" y="${bt}" width="${bw}" height="${bh}"
                  viewBox="${a.vb}" preserveAspectRatio="xMidYMax meet" overflow="visible">${a.inner}</svg>`;
   }).join('');
-  scene.innerHTML = shell + objects + `<rect x="0" y="0" width="100" height="100" fill="url(#wallspot)" pointer-events="none"/>`;
+  scene.innerHTML =
+    `<g class="lay-back">${shell}</g>` +
+    `<g class="lay-front">${objects}</g>` +
+    `<rect x="0" y="0" width="100" height="100" fill="url(#wallspot)" pointer-events="none"/>`;
 
   /* dust motes drifting through the pendant light */
   const room = scene.parentElement;
@@ -1086,6 +1140,40 @@ function buildScene() {
     m.style.cssText = `left:${x}%;top:${y}%;animation-delay:${delay}s`;
     room.appendChild(m);
   });
+
+  /* the index book on the shelf opens the full inventory */
+  if (!room.querySelector('.index-book')) {
+    const book = document.createElement('button');
+    book.type = 'button';
+    book.className = 'index-book';
+    book.setAttribute('aria-haspopup', 'dialog');
+    book.setAttribute('aria-label', 'the index — the full list of things in the room');
+    book.title = 'the index';
+    book.style.cssText = 'left:46%;top:53%;width:2%;height:4.4%';
+    book.innerHTML = `<svg viewBox="0 0 20 44" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect x="2" y="2" width="16" height="40" rx="2" fill="#e8d9b8" stroke="#3a3230" stroke-width="1.8"/>
+      <rect x="2" y="5" width="16" height="4" fill="#b0453a"/>
+      <rect x="2" y="35" width="16" height="4" fill="#b0453a"/>
+      <text x="10" y="23" text-anchor="middle" font-size="5.4" font-family="Spline Sans Mono, monospace"
+            fill="#43362a" transform="rotate(90 10 22)">index</text>
+    </svg>`;
+    book.addEventListener('click', openInventory);
+    room.appendChild(book);
+  }
+
+  /* a whisper of parallax: the wall hangs back, the furniture leans in */
+  if (matchMedia('(hover: hover)').matches && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    document.addEventListener('pointermove', e => {
+      const r = scene.getBoundingClientRect();
+      const t = Math.max(-1, Math.min(1, ((e.clientX - r.left) / r.width - 0.5) * 2));
+      scene.style.setProperty('--parx', (t * 8).toFixed(2));
+    }, { passive: true });
+  }
+}
+
+function openInventory() {
+  const inv = document.getElementById('inventory');
+  if (inv && !inv.open) inv.showModal();
 }
 
 /* ---- picking things up ----------------------------------------------
@@ -1111,6 +1199,10 @@ examine.innerHTML = `
     </div>
   </div>`;
 document.body.appendChild(examine);
+const blackout = document.createElement('div');
+blackout.className = 'blackout';
+blackout.setAttribute('aria-hidden', 'true');
+document.body.appendChild(blackout);
 const held = examine.querySelector('.held');
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)');
 let heldFrom = null;  /* the spot to fly back to and refocus */
@@ -1158,6 +1250,13 @@ function pickUp(p, spot, room) {
     go.className = 'enter';
     go.href = p.url;
     go.textContent = 'step inside ↗';
+    /* leaving a room turns the lights out behind you */
+    go.addEventListener('click', e => {
+      if (reducedMotion || e.metaKey || e.ctrlKey || e.shiftKey) return;
+      e.preventDefault();
+      document.querySelector('.blackout').classList.add('on');
+      setTimeout(() => { location.href = go.href; }, 400);
+    });
     actions.append(go);
   }
   const back = document.createElement('button');
@@ -1227,18 +1326,6 @@ function putBack() {
 examine.querySelector('.backdrop').addEventListener('click', putBack);
 document.addEventListener('keydown', e => { if (e.key === 'Escape') putBack(); });
 
-/* a guestbook note shown in the same caption spot */
-function showNoteCard(n) {
-  card.innerHTML = '';
-  const blurb = document.createElement('span');
-  blurb.className = 'blurb';
-  blurb.textContent = `“${n.message}”`;
-  const meta = document.createElement('span');
-  meta.className = 'meta';
-  meta.textContent = `— ${n.name || 'someone'}, in the notebook`;
-  card.append(blurb, meta);
-}
-
 /* ---- time of day ---------------------------------------------------- */
 let clockOverride = null; /* the little switch in the corner sets this */
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1282,7 +1369,8 @@ function applyClock() {
   updateEmbers(band === 'night');
   const toggle = document.getElementById('mode-toggle');
   if (toggle) {
-    toggle.textContent = band === 'night' ? 'see it in daylight ☀' : 'see it at night ☾';
+    toggle.classList.toggle('on', band === 'night');
+    toggle.setAttribute('aria-label', band === 'night' ? 'the light switch — flip for daylight' : 'the light switch — flip for night');
     toggle.setAttribute('aria-pressed', String(!!clockOverride));
   }
   return band;
@@ -1303,6 +1391,12 @@ document.getElementById('mode-toggle').addEventListener('click', () => {
     h >= 11 && h < 17 ? 'come in, come in.' :
     h >= 17 && h < 21 ? "evening — good timing, the fire's just getting going." :
     "it's late where you are — the lamp's on for you.";
+  /* the dog delivers the greeting now that the words left the page */
+  setTimeout(() => {
+    const room = document.getElementById(`room-${ROOMS[0].id}`);
+    const dog = ROOMS[0].toys.find(t => t.kind === 'corgi');
+    if (room && dog) speak(room, dog.x + 1, dog.y - 10, el.textContent);
+  }, 1300);
 })();
 
 /* ---- toys ----------------------------------------------------------- */
@@ -1712,7 +1806,8 @@ function renderScraps(roomData, room) {
     who.className = 'who';
     who.textContent = `— ${n.name || 'someone'}`;
     scrap.append(msg, who);
-    scrap.addEventListener('mouseenter', () => showNoteCard(n));
+    scrap.addEventListener('mouseenter', () =>
+      speak(room, slots[i][0] + 4, slots[i][1] - 5, `“${n.message}” — ${n.name || 'someone'}`));
     scrap.addEventListener('click', openNotebook);
     room.appendChild(scrap);
   });
@@ -1765,6 +1860,7 @@ function openNotebook() {
 }
 
 document.getElementById('note-close').addEventListener('click', () => notebook.close());
+document.getElementById('inventory-close').addEventListener('click', () => document.getElementById('inventory').close());
 noteText.addEventListener('input', () => {
   noteCount.textContent = `${130 - noteText.value.length} left`;
 });
@@ -1852,6 +1948,7 @@ function applyHash() {
   document.querySelectorAll('.spot.lit').forEach(el => el.classList.remove('lit'));
   if (!id) return;
   if (id === 'guestbook') { openNotebook(); return; }
+  if (id === 'projects') { openInventory(); return; }
   const spotEl = document.getElementById(`spot-${id}`);
   if (!spotEl) return;
   spotEl.classList.add('lit');
