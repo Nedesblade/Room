@@ -576,7 +576,33 @@
   }
   .obj { transition: transform 0.25s ease; }
   .obj.lift { transform: translateY(-1px); }
-  @media (prefers-reduced-motion: reduce) { .obj { transition: none; } }
+
+  /* poke reactions for objects that carry no project */
+  .poke { position: absolute; background: none; border: 0; cursor: pointer; padding: 0; font: inherit; }
+  .poke .tag { opacity: 0; }
+  .poke:hover .tag, .poke:focus-visible .tag { opacity: 1; }
+  .poke:focus-visible { outline: 2px dashed rgba(236,228,216,0.8); outline-offset: 2px; }
+  @keyframes stokeflare { 0% { filter: brightness(1); } 22% { filter: brightness(1.3); } 100% { filter: brightness(1); } }
+  .obj.stoke { animation: stokeflare 1.5s ease-out; }
+  .obj.stoke .flame { animation-duration: 0.4s; }
+  @keyframes blipflash { 0% { filter: brightness(1); } 30% { filter: brightness(1.45); } 100% { filter: brightness(1); } }
+  .obj.blipflash { animation: blipflash 0.7s ease-out; }
+  @keyframes plump {
+    0% { transform: scale(1, 1); } 30% { transform: scale(1.03, 0.95); }
+    62% { transform: scale(0.99, 1.03); } 100% { transform: scale(1, 1); }
+  }
+  .obj.plump { animation: plump 0.55s ease-out; transform-box: fill-box; transform-origin: 50% 100%; }
+  @keyframes objwobble {
+    0% { transform: rotate(0); } 25% { transform: rotate(1.6deg); }
+    58% { transform: rotate(-1.2deg); } 100% { transform: rotate(0); }
+  }
+  .obj.wobble { animation: objwobble 0.6s ease-out; transform-box: fill-box; transform-origin: 50% 15%; }
+  @keyframes rugripple { 0% { transform: scale(1); } 35% { transform: scale(1.012, 1.06); } 100% { transform: scale(1); } }
+  .obj.ripple { animation: rugripple 0.6s ease-out; transform-box: fill-box; transform-origin: 50% 60%; }
+  @media (prefers-reduced-motion: reduce) {
+    .obj { transition: none; }
+    .obj.stoke, .obj.blipflash, .obj.plump, .obj.wobble, .obj.ripple { animation: none; }
+  }
   .examine.settled .held { animation: sway 5s ease-in-out infinite; }
   @keyframes sway {
     0%, 100% { transform: rotate(-1.3deg) translateY(0); }
@@ -1525,12 +1551,51 @@ function maybeCat(roomData, room) {
   room.appendChild(cat);
 }
 
+/* ---- poking things that aren't projects ------------------------------
+   A room where only some things answer feels like a kiosk. Everything
+   answers. */
+function rerun(el, cls) {
+  el.classList.remove(cls);
+  void el.getBoundingClientRect();
+  el.classList.add(cls);
+  setTimeout(() => el.classList.remove(cls), 1600);
+}
+function crackle() {
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  if (!Ctx) return;
+  const ctx = new Ctx();
+  const dur = 0.7;
+  const buf = ctx.createBuffer(1, ctx.sampleRate * dur, ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 1; i < d.length; i++) {
+    d[i] = Math.random() < 0.015 ? (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 1.4) : d[i - 1] * 0.86;
+  }
+  const src = ctx.createBufferSource(); src.buffer = buf;
+  const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2400;
+  const g = ctx.createGain(); g.gain.value = 0.55;
+  src.connect(lp); lp.connect(g); g.connect(ctx.destination);
+  src.start();
+  src.onended = () => ctx.close().catch(() => {});
+}
+const POKES = {
+  fireplace: { label: 'the fire',      act: (o, r, s) => { rerun(o, 'stoke'); crackle(); speak(r, s.x, s.y - 12, '*crackle*'); } },
+  couch:     { label: 'the couch',     act: (o, r, s) => { rerun(o, 'plump'); speak(r, s.x, s.y - 12, 'poomf.'); } },
+  tv:        { label: 'the tv',        act: (o, r, s) => { rerun(o, 'blipflash'); speak(r, s.x, s.y - 9, 'still static.'); } },
+  mirror:    { label: 'the mirror',    act: (o, r, s) => { rerun(o, 'blipflash'); speak(r, s.x, s.y - 8, 'hi, you.'); } },
+  prints:    { label: 'the prints',    act: (o, r, s) => { rerun(o, 'wobble'); speak(r, s.x, s.y - 9, '*straightens frame*'); } },
+  rug:       { label: 'the rug',       act: (o, r, s) => { rerun(o, 'ripple'); speak(r, s.x - 8, s.y - 6, '*floof*'); } },
+  shelves:   { label: 'the shelves',   act: (o, r, s) => { rerun(o, 'wobble'); speak(r, s.x, s.y - 11, 'mostly unread.'); } },
+  sideboard: { label: 'the sideboard', act: (o, r, s) => { rerun(o, 'plump'); speak(r, s.x, s.y - 8, '*rattle*'); } },
+  desk:      { label: 'the desk',      act: (o, r, s) => { rerun(o, 'wobble'); speak(r, s.x, s.y - 12, 'work in progress.'); } },
+  suitcase:  { label: 'the suitcase',  act: (o, r, s) => { rerun(o, 'wobble'); speak(r, s.x, s.y - 9, 'not unpacked yet.'); } },
+};
+
 /* ---- rendering ------------------------------------------------------ */
 function renderRoom(roomData, projects) {
   const room = document.getElementById(`room-${roomData.id}`);
   if (!room) return;
 
-  room.querySelectorAll('.spot, .toy, .glow, .cat').forEach(el => el.remove());
+  room.querySelectorAll('.spot, .toy, .glow, .cat, .poke').forEach(el => el.remove());
 
   for (const g of roomData.glows || []) {
     const el = document.createElement('div');
@@ -1594,6 +1659,27 @@ function renderRoom(roomData, projects) {
     a.append(dot, tag);
     room.appendChild(a);
     i++;
+  }
+
+  /* objects that carry no project still answer when poked */
+  for (const spot of roomData.spots) {
+    if (taken.get(spot.id)) continue;
+    const poke = POKES[spot.id];
+    const obj = document.getElementById(`obj-${spot.id}`);
+    if (!poke || !obj) continue;
+    const [bl, bt, bw, bh] = spot.box;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'poke';
+    btn.setAttribute('aria-label', poke.label);
+    btn.style.cssText = `left:${bl}%;top:${bt}%;width:${bw}%;height:${bh}%`;
+    const tag = document.createElement('span');
+    tag.className = 'tag';
+    tag.style.cssText = 'left:50%;top:40%';
+    tag.textContent = `(${poke.label})`;
+    btn.appendChild(tag);
+    btn.addEventListener('click', () => poke.act(obj, room, spot));
+    room.appendChild(btn);
   }
 
   for (const toy of roomData.toys || []) room.appendChild(makeToy(toy, room));
