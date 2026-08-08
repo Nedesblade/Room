@@ -496,44 +496,56 @@
   }
   .enter:hover, .enter:focus-visible { filter: brightness(1.1); }
 
-  /* ---- the intro card: pops up right next to the object ------------ */
-  .popcard {
+  /* ---- picking things up: the examine view ------------------------- */
+  .spot, button.spot { cursor: grab; }
+  .examine {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    display: grid;
+    place-items: center;
+    padding: 1.2rem;
+  }
+  .examine[hidden] { display: none; }
+  .examine .backdrop {
     position: absolute;
-    z-index: 6;
-    width: 240px;
-    max-width: 74vw;
-    background: var(--card);
-    border: 1px solid rgba(236,228,216,0.16);
-    border-radius: 12px;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.5);
-    padding: 0.55rem 0.8rem 0.65rem;
-    transform: translate(-50%, calc(-100% - 13px));
-    animation: pop-in 0.16s ease-out;
+    inset: 0;
+    background: rgba(5, 6, 6, 0.62);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
   }
-  .popcard.below { transform: translate(-50%, 13px); }
-  .popcard::after {
-    content: '';
-    position: absolute;
-    left: var(--caret, 50%);
-    bottom: -6px;
-    width: 10px; height: 10px;
-    background: var(--card);
-    border-right: 1px solid rgba(236,228,216,0.16);
-    border-bottom: 1px solid rgba(236,228,216,0.16);
-    transform: translateX(-50%) rotate(45deg);
+  .exam-box { position: relative; text-align: center; max-width: min(88vw, 30rem); }
+  .held {
+    display: inline-block;
+    border-radius: 14px;
+    border: 1px solid rgba(236,228,216,0.28);
+    box-shadow: 0 26px 60px rgba(0,0,0,0.65), 0 4px 14px rgba(0,0,0,0.5);
+    background-repeat: no-repeat;
+    will-change: transform;
   }
-  .popcard.below::after {
-    bottom: auto; top: -6px;
-    border-right: none; border-bottom: none;
-    border-left: 1px solid rgba(236,228,216,0.16);
-    border-top: 1px solid rgba(236,228,216,0.16);
+  .examine.settled .held { animation: sway 5s ease-in-out infinite; }
+  @keyframes sway {
+    0%, 100% { transform: rotate(-1.3deg) translateY(0); }
+    50% { transform: rotate(1.3deg) translateY(-5px); }
   }
-  .popcard h3 { font-size: 0.98rem; font-weight: 620; margin: 0 0 0.1rem; }
-  .popcard .blurb { display: block; color: var(--ink-dim); font-size: 0.85rem; }
-  .popcard .meta { display: block; margin-top: 0.3rem; }
-  .popcard .enter { margin-top: 0.45rem; }
-  @keyframes pop-in { from { opacity: 0; } }
-  @media (prefers-reduced-motion: reduce) { .popcard { animation: none; } }
+  .exam-text { margin-top: 1rem; color: var(--ink); }
+  .exam-text .lead { font-size: 1.02rem; }
+  .exam-text .lead strong { color: var(--amber); font-weight: 650; }
+  .exam-text .blurb { display: block; margin-top: 0.2rem; color: var(--ink-dim); font-size: 0.92rem; }
+  .exam-text .meta { display: block; margin-top: 0.4rem; }
+  .exam-actions { margin-top: 0.9rem; display: flex; gap: 1.1rem; justify-content: center; align-items: center; }
+  .putback {
+    font: inherit;
+    font-size: 0.9rem;
+    background: none;
+    border: none;
+    color: var(--ink-dim);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+  }
+  .putback:hover, .putback:focus-visible { color: var(--ink); }
+  @media (prefers-reduced-motion: reduce) { .examine.settled .held { animation: none; } }
 
   /* ---- the plain list ---------------------------------------------- */
   .list { margin-top: 3rem; }
@@ -722,8 +734,6 @@ const EXAMPLES = [
 /* ===================================================================== */
 
 const card = document.getElementById('card');
-/* touch-only: the project whose card a first tap opened (see renderRoom) */
-let armedSpot = null;
 const listEl = document.getElementById('project-list');
 const statusEl = document.getElementById('status');
 const params = new URLSearchParams(location.search);
@@ -742,75 +752,138 @@ function timeAgo(iso) {
   return 'updated just now';
 }
 
-/* the intro card that pops up beside whatever object you're on */
-const pop = document.createElement('div');
-pop.className = 'popcard';
-pop.hidden = true;
-let hideTimer = null;
-const cancelHide = () => { clearTimeout(hideTimer); hideTimer = null; };
-const scheduleHide = () => { cancelHide(); hideTimer = setTimeout(hidePop, 250); };
-pop.addEventListener('mouseenter', cancelHide);
-pop.addEventListener('mouseleave', scheduleHide);
+/* ---- picking things up ----------------------------------------------
+   Click an object and it lifts out of the photograph — a cropped piece
+   of the actual picture — to be turned over in the guest's hands. */
+const examine = document.createElement('div');
+examine.className = 'examine';
+examine.hidden = true;
+examine.setAttribute('role', 'dialog');
+examine.setAttribute('aria-modal', 'true');
+examine.innerHTML = `
+  <div class="backdrop"></div>
+  <div class="exam-box">
+    <div class="held" aria-hidden="true"></div>
+    <div class="exam-text">
+      <span class="lead"></span>
+      <span class="blurb"></span>
+      <span class="meta"></span>
+    </div>
+    <div class="exam-actions"></div>
+  </div>`;
+document.body.appendChild(examine);
+const held = examine.querySelector('.held');
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)');
+let heldFrom = null;  /* the spot to fly back to and refocus */
+let settleTimer = null;
 
-function hidePop() {
-  cancelHide();
-  pop.hidden = true;
-  armedSpot = null;
-}
+function pickUp(p, spot, room) {
+  const img = room.querySelector('.photo');
+  const [bl, bt, bw, bh] = spot.box;
+  const aspect = (img.naturalWidth || 4) / (img.naturalHeight || 3);
 
-function showPop(p, x, y, room) {
-  cancelHide();
-  pop.innerHTML = '';
-  const h = document.createElement('h3');
-  h.textContent = p.name;
+  /* cut the object's slice out of the room photo */
+  const W = Math.min(window.innerWidth * 0.72, 340);
+  const H = W * bh / (bw * aspect);
+  const scaledW = W * 100 / bw;
+  const scaledH = scaledW / aspect;
+  held.style.width = W + 'px';
+  held.style.height = H + 'px';
+  held.style.backgroundImage = `url("${img.currentSrc || img.src}")`;
+  held.style.backgroundSize = `${scaledW}px ${scaledH}px`;
+  held.style.backgroundPosition = `-${scaledW * bl / 100}px -${scaledH * bt / 100}px`;
+
+  const lead = examine.querySelector('.lead');
+  lead.textContent = 'You pick up ';
+  const nm = document.createElement('strong');
+  nm.textContent = p.name;
+  lead.append(nm, '.');
   if (isNew(p.pushed)) {
     const chip = document.createElement('span');
     chip.className = 'newchip'; chip.textContent = 'new';
-    h.append(' ', chip);
+    lead.append(' ', chip);
   }
-  const blurb = document.createElement('span');
-  blurb.className = 'blurb'; blurb.textContent = p.blurb;
-  pop.append(h, blurb);
+  examine.querySelector('.blurb').textContent = p.blurb;
   const bits = [];
   if (p.pushed) bits.push(timeAgo(p.pushed));
-  if (!p.url && p.priv) bits.push('private — ask me about it');
-  if (bits.length) {
-    const meta = document.createElement('span');
-    meta.className = 'meta'; meta.textContent = bits.join(' · ');
-    pop.append(meta);
-  }
+  if (!p.url && p.priv) bits.push('it’s personal — ask me about it sometime');
+  examine.querySelector('.meta').textContent = bits.join(' · ');
+
+  const actions = examine.querySelector('.exam-actions');
+  actions.innerHTML = '';
   if (p.url) {
     const go = document.createElement('a');
     go.className = 'enter';
     go.href = p.url;
     go.textContent = 'step inside ↗';
-    pop.append(go);
+    actions.append(go);
   }
-  pop.classList.remove('below');
-  pop.style.left = x + '%';
-  pop.style.top = y + '%';
-  pop.style.marginLeft = '0px';
-  pop.style.removeProperty('--caret');
-  if (pop.parentElement !== room) room.appendChild(pop);
-  pop.hidden = false;
-  /* above the dot normally; below it when there isn't room above */
-  const rr = room.getBoundingClientRect();
-  if (pop.getBoundingClientRect().top < rr.top + 4) pop.classList.add('below');
-  /* keep it inside the photo; slide the caret so it still points home */
-  const pr = pop.getBoundingClientRect();
-  let shift = 0;
-  if (pr.left < rr.left + 6) shift = (rr.left + 6) - pr.left;
-  else if (pr.right > rr.right - 6) shift = (rr.right - 6) - pr.right;
-  if (shift) {
-    pop.style.marginLeft = shift + 'px';
-    pop.style.setProperty('--caret', `calc(50% - ${shift}px)`);
+  const back = document.createElement('button');
+  back.className = 'putback';
+  back.type = 'button';
+  back.textContent = 'put it back';
+  back.addEventListener('click', putBack);
+  actions.append(back);
+
+  heldFrom = document.getElementById(`spot-${spot.id}`);
+  examine.hidden = false;
+  examine.classList.remove('settled');
+  clearTimeout(settleTimer);
+
+  /* lift it out of the scene (skipped for reduced motion) */
+  if (!REDUCED.matches && heldFrom) {
+    const to = held.getBoundingClientRect();
+    const from = heldFrom.getBoundingClientRect();
+    const dx = (from.left + from.width / 2) - (to.left + to.width / 2);
+    const dy = (from.top + from.height / 2) - (to.top + to.height / 2);
+    held.style.transition = 'none';
+    held.style.transform = `translate(${dx}px, ${dy}px) scale(${from.width / to.width}, ${from.height / to.height})`;
+    held.style.opacity = '0.4';
+    requestAnimationFrame(() => {
+      held.style.transition = 'transform 0.38s cubic-bezier(0.2, 0.8, 0.3, 1), opacity 0.38s';
+      held.style.transform = 'translate(0, 0)';
+      held.style.opacity = '1';
+    });
+    settleTimer = setTimeout(() => {
+      held.style.transition = '';
+      held.style.transform = '';
+      examine.classList.add('settled');
+    }, 400);
+  } else {
+    held.style.transform = '';
+    held.style.opacity = '1';
+    examine.classList.add('settled');
+  }
+  examine.querySelector('.putback').focus({ preventScroll: true });
+}
+
+function putBack() {
+  if (examine.hidden) return;
+  clearTimeout(settleTimer);
+  examine.classList.remove('settled');
+  const done = () => {
+    examine.hidden = true;
+    held.style.transition = '';
+    held.style.transform = '';
+    held.style.opacity = '';
+    if (heldFrom) heldFrom.focus({ preventScroll: true });
+  };
+  if (!REDUCED.matches && heldFrom) {
+    const to = held.getBoundingClientRect();
+    const from = heldFrom.getBoundingClientRect();
+    const dx = (from.left + from.width / 2) - (to.left + to.width / 2);
+    const dy = (from.top + from.height / 2) - (to.top + to.height / 2);
+    held.style.transition = 'transform 0.3s ease-in, opacity 0.3s';
+    held.style.transform = `translate(${dx}px, ${dy}px) scale(${from.width / to.width}, ${from.height / to.height})`;
+    held.style.opacity = '0.3';
+    setTimeout(done, 300);
+  } else {
+    done();
   }
 }
 
-document.addEventListener('pointerdown', e => {
-  if (!pop.hidden && !pop.contains(e.target) && !e.target.closest('.spot')) hidePop();
-});
-document.addEventListener('keydown', e => { if (e.key === 'Escape') hidePop(); });
+examine.querySelector('.backdrop').addEventListener('click', putBack);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') putBack(); });
 
 /* a guestbook note shown in the same caption spot */
 function showNoteCard(n) {
@@ -1133,23 +1206,15 @@ function renderRoom(roomData, projects) {
     const a = document.createElement(p.url ? 'a' : 'button');
     a.className = 'spot' + (isNew(p.pushed) ? ' new' : '');
     a.id = `spot-${spot.id}`;
-    if (p.url) {
-      a.href = p.url;
-      /* touch has no hover-preview: the first tap pops the intro card
-         by the object, and only the second tap (or the card's own
-         "step inside" button) actually goes. Hover devices previewed
-         already, so their click passes straight through. */
-      a.addEventListener('click', e => {
-        if (!matchMedia('(hover: none)').matches) return;
-        if (armedSpot === p) return;
-        e.preventDefault();
-        armedSpot = p;
-        showPop(p, spot.x, spot.y, room);
-      });
-    } else {
-      a.type = 'button';
-      a.addEventListener('click', () => showPop(p, spot.x, spot.y, room));
-    }
+    if (p.url) a.href = p.url;
+    else a.type = 'button';
+    /* clicking picks the object up; going inside is a choice made
+       while holding it (ctrl/middle-click still opens links directly) */
+    a.addEventListener('click', e => {
+      if (e.metaKey || e.ctrlKey || e.shiftKey) return;
+      e.preventDefault();
+      pickUp(p, spot, room);
+    });
     a.setAttribute('aria-label', `${p.name} — ${p.blurb}${p.url ? '' : ' (private project)'}`);
     a.style.cssText = `left:${bl}%;top:${bt}%;width:${bw}%;height:${bh}%`;
     const dx = ((spot.x - bl) / bw) * 100, dy = ((spot.y - bt) / bh) * 100;
@@ -1166,10 +1231,6 @@ function renderRoom(roomData, projects) {
       tag.appendChild(chip);
     }
     a.append(dot, tag);
-    a.addEventListener('mouseenter', () => showPop(p, spot.x, spot.y, room));
-    a.addEventListener('focus', () => showPop(p, spot.x, spot.y, room));
-    a.addEventListener('mouseleave', scheduleHide);
-    a.addEventListener('blur', scheduleHide);
     room.appendChild(a);
     i++;
   }
@@ -1349,7 +1410,7 @@ function applyHash() {
   spotEl.classList.add('lit');
   const proj = current.find(x => x._spot === id);
   const spotData = ROOMS[0].spots.find(s => s.id === id);
-  if (proj && spotData) showPop(proj, spotData.x, spotData.y, spotEl.closest('.room'));
+  if (proj && spotData) pickUp(proj, spotData, spotEl.closest('.room'));
   spotEl.scrollIntoView({ block: 'center', behavior: 'auto' });
 }
 window.addEventListener('hashchange', applyHash);
