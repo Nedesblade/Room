@@ -523,6 +523,19 @@
     background-repeat: no-repeat;
     will-change: transform;
   }
+  .held.art {
+    background: none;
+    border: none;
+    box-shadow: none;
+    filter: drop-shadow(0 22px 28px rgba(0,0,0,0.55));
+  }
+  .spot-art {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
   .examine.settled .held { animation: sway 5s ease-in-out infinite; }
   @keyframes sway {
     0%, 100% { transform: rotate(-1.3deg) translateY(0); }
@@ -681,6 +694,9 @@ const ROOMS = [
       { id: 'prints',    x: 79,   y: 46,   box: [72,   40,   16,   14] },
       { id: 'desk',      x: 83.5, y: 70,   box: [74,   61,   15,   19] },
       { id: 'rug',       x: 38,   y: 79,   box: [28,   68,   46,   17] },
+      /* not everything in the room came with the photo — some objects
+         are drawn in because a project deserved its own thing */
+      { id: 'suitcase',  x: 21.5, y: 74,   box: [16.5, 71.5, 10.5, 11.5], art: 'suitcase' },
     ],
     toys: [
       { id: 'lamp',     kind: 'lamp',     label: 'the lamp',      x: 50.5, y: 40,   glow: 'pendant' },
@@ -729,6 +745,7 @@ const EXAMPLES = [
   { name: 'Wall of Prints', blurb: 'Pictures I made and actually framed.',                   url: '#projects', pushed: null, pin: 'prints' },
   { name: 'The Workbench',  blurb: "Whatever's currently in pieces on the desk.",            url: '#projects', pushed: null, pin: 'desk' },
   { name: 'Floor Time',     blurb: 'Games best played sitting on the rug.',                  url: '#projects', pushed: null, pin: 'rug' },
+  { name: 'Packed Lightly', blurb: 'Trips I never quite unpack from.',                       url: '#projects', pushed: null, pin: 'suitcase' },
 ];
 
 /* ===================================================================== */
@@ -752,9 +769,48 @@ function timeAgo(iso) {
   return 'updated just now';
 }
 
+/* ---- drawn objects ---------------------------------------------------
+   Some things weren't in the photo; they get drawn in, in the same
+   spirit as the toy plane. Each factory returns a fresh SVG. */
+const ART = {
+  suitcase() {
+    const el = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    el.setAttribute('viewBox', '0 0 100 78');
+    el.setAttribute('aria-hidden', 'true');
+    el.innerHTML = `
+      <ellipse cx="50" cy="70" rx="36" ry="5" fill="#000" opacity="0.28"/>
+      <g transform="rotate(-4 50 42)">
+        <rect x="14" y="16" width="72" height="52" rx="6" fill="#8a4a32" stroke="#57301f" stroke-width="1.6"/>
+        <rect x="14" y="16" width="72" height="52" rx="6" fill="none" stroke="#a05c3e" stroke-width="0.7"
+              stroke-dasharray="2 2.4" transform="translate(0 1.4)" opacity="0.8"/>
+        <path d="M40 16 v-5 a4 4 0 0 1 4 -4 h12 a4 4 0 0 1 4 4 v5" fill="none" stroke="#d99a5c" stroke-width="3.4" stroke-linecap="round"/>
+        <line x1="14" y1="38" x2="86" y2="38" stroke="#57301f" stroke-width="1.6"/>
+        <rect x="27" y="16" width="6" height="52" fill="#6d3824" stroke="#57301f" stroke-width="0.8"/>
+        <rect x="67" y="16" width="6" height="52" fill="#6d3824" stroke="#57301f" stroke-width="0.8"/>
+        <rect x="26" y="35" width="8" height="6.5" rx="1.2" fill="#d99a5c" stroke="#8a5a2e" stroke-width="0.8"/>
+        <rect x="66" y="35" width="8" height="6.5" rx="1.2" fill="#d99a5c" stroke="#8a5a2e" stroke-width="0.8"/>
+        <path d="M14 22 q-3 0 -3 4 v4 q0 4 3 4 M86 22 q3 0 3 4 v4 q0 4 -3 4" fill="none" stroke="#57301f" stroke-width="1.6"/>
+        <g transform="rotate(8 52 54)">
+          <circle cx="52" cy="54" r="8.5" fill="#ece4d8" stroke="#b3402e" stroke-width="1.6"/>
+          <text x="52" y="56.4" text-anchor="middle" font-size="4.6" font-weight="bold"
+                font-family="Spline Sans Mono, monospace" fill="#b3402e">ITALIA</text>
+        </g>
+        <g transform="rotate(-10 76 25)">
+          <rect x="70" y="20" width="13" height="9" fill="#9db7a5" stroke="#ece4d8" stroke-width="1.2" stroke-dasharray="1.4 1"/>
+          <path d="M72 27 l3.5 -3.5 l2.5 2 l3 -3.5" fill="none" stroke="#3f5b4a" stroke-width="1"/>
+        </g>
+        <g transform="rotate(6 36 60)">
+          <path d="M30 57 h11 l-3 3 l3 3 h-11 z" fill="#e8c46a" stroke="#8a5a2e" stroke-width="0.8"/>
+        </g>
+      </g>`;
+    return el;
+  },
+};
+
 /* ---- picking things up ----------------------------------------------
    Click an object and it lifts out of the photograph — a cropped piece
-   of the actual picture — to be turned over in the guest's hands. */
+   of the actual picture (or the drawn object itself) — to be turned
+   over in the guest's hands. */
 const examine = document.createElement('div');
 examine.className = 'examine';
 examine.hidden = true;
@@ -782,16 +838,31 @@ function pickUp(p, spot, room) {
   const [bl, bt, bw, bh] = spot.box;
   const aspect = (img.naturalWidth || 4) / (img.naturalHeight || 3);
 
-  /* cut the object's slice out of the room photo */
-  const W = Math.min(window.innerWidth * 0.72, 340);
-  const H = W * bh / (bw * aspect);
-  const scaledW = W * 100 / bw;
-  const scaledH = scaledW / aspect;
-  held.style.width = W + 'px';
-  held.style.height = H + 'px';
-  held.style.backgroundImage = `url("${img.currentSrc || img.src}")`;
-  held.style.backgroundSize = `${scaledW}px ${scaledH}px`;
-  held.style.backgroundPosition = `-${scaledW * bl / 100}px -${scaledH * bt / 100}px`;
+  held.innerHTML = '';
+  held.classList.toggle('art', !!spot.art);
+  if (spot.art && ART[spot.art]) {
+    /* hold the drawn object itself */
+    const W = Math.min(window.innerWidth * 0.72, 300);
+    const svg = ART[spot.art]();
+    const vb = (svg.getAttribute('viewBox') || '0 0 100 78').split(/\s+/);
+    held.style.width = W + 'px';
+    held.style.height = (W * vb[3] / vb[2]) + 'px';
+    held.style.backgroundImage = 'none';
+    svg.style.width = '100%';
+    svg.style.height = '100%';
+    held.appendChild(svg);
+  } else {
+    /* cut the object's slice out of the room photo */
+    const W = Math.min(window.innerWidth * 0.72, 340);
+    const H = W * bh / (bw * aspect);
+    const scaledW = W * 100 / bw;
+    const scaledH = scaledW / aspect;
+    held.style.width = W + 'px';
+    held.style.height = H + 'px';
+    held.style.backgroundImage = `url("${img.currentSrc || img.src}")`;
+    held.style.backgroundSize = `${scaledW}px ${scaledH}px`;
+    held.style.backgroundPosition = `-${scaledW * bl / 100}px -${scaledH * bt / 100}px`;
+  }
 
   const lead = examine.querySelector('.lead');
   lead.textContent = 'You pick up ';
@@ -1217,6 +1288,11 @@ function renderRoom(roomData, projects) {
     });
     a.setAttribute('aria-label', `${p.name} — ${p.blurb}${p.url ? '' : ' (private project)'}`);
     a.style.cssText = `left:${bl}%;top:${bt}%;width:${bw}%;height:${bh}%`;
+    if (spot.art && ART[spot.art]) {
+      const art = ART[spot.art]();
+      art.classList.add('spot-art');
+      a.appendChild(art);
+    }
     const dx = ((spot.x - bl) / bw) * 100, dy = ((spot.y - bt) / bh) * 100;
     const dot = document.createElement('span');
     dot.className = 'dot';
