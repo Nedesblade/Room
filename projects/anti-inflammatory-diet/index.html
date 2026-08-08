@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Anti-Inflammatory Diet</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%239dc98a' opacity='.25'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%239dc98a'/%3E%3C/svg%3E">
 <style>
   :root {
     --bg: #16130f;
@@ -104,12 +105,12 @@
     padding: 0.2rem 0.7rem;
     font-size: 0.88rem;
   }
-  .chip small { color: var(--ink-dim); }
   .none { color: var(--ink-dim); font-style: italic; font-size: 0.9rem; }
 
   /* meals */
   .meal h2 { font-size: 1.02rem; margin: 0 0 0.2rem; color: var(--amber); }
   .meal p { margin: 0.15rem 0; }
+  .plan-note { color: var(--ink-dim); font-size: 0.88rem; margin: 0 0 0.8rem; }
   .shuffle {
     font: inherit;
     padding: 0.55rem 1.2rem;
@@ -119,10 +120,11 @@
     color: #241505;
     font-weight: 600;
     cursor: pointer;
-    margin-bottom: 1rem;
+    margin-bottom: 0.4rem;
   }
   @media (prefers-color-scheme: light) { .shuffle { color: #fff; } }
 
+  .error { color: var(--red); }
   footer { margin-top: 2.5rem; font-size: 0.8rem; color: var(--ink-dim); }
   footer a { color: var(--amber); }
 </style>
@@ -134,90 +136,106 @@
   <p>what I eat to keep the fires down</p>
 </header>
 
-<nav role="tablist">
+<nav role="tablist" aria-label="Sections">
   <button role="tab" aria-selected="true" data-tab="today">Today</button>
   <button role="tab" aria-selected="false" data-tab="foods">Food guide</button>
   <button role="tab" aria-selected="false" data-tab="meals">Meal ideas</button>
 </nav>
 
-<section id="today">
-  <div class="card">
-    <div class="progress">
-      <div class="ring">
-        <svg width="64" height="64" viewBox="0 0 64 64">
-          <circle class="track" cx="32" cy="32" r="27" fill="none" stroke-width="7"/>
-          <circle class="fill" id="ring-fill" cx="32" cy="32" r="27" fill="none" stroke-width="7"/>
-        </svg>
-        <span class="num" id="ring-num">0/0</span>
-      </div>
-      <div>
-        <strong id="cheer">A fresh day.</strong>
-        <div class="streak" id="streak"></div>
-      </div>
-    </div>
-    <ul class="check" id="habit-list"></ul>
-  </div>
-</section>
-
-<section id="foods" hidden>
-  <input class="search" id="food-search" type="search" placeholder="search a food… (e.g. salmon, sugar, rice)">
-  <div class="card tier go"><h2><span class="dot"></span>Eat freely</h2><div class="chips" data-tier="go"></div></div>
-  <div class="card tier easy"><h2><span class="dot"></span>Easy does it</h2><div class="chips" data-tier="easy"></div></div>
-  <div class="card tier rare"><h2><span class="dot"></span>Keep rare</h2><div class="chips" data-tier="rare"></div></div>
-</section>
-
-<section id="meals" hidden>
-  <button class="shuffle" id="shuffle">Shuffle the day's plate</button>
-  <div class="card meal"><h2>Breakfast</h2><p id="m-breakfast"></p></div>
-  <div class="card meal"><h2>Lunch</h2><p id="m-lunch"></p></div>
-  <div class="card meal"><h2>Dinner</h2><p id="m-dinner"></p></div>
-  <div class="card meal"><h2>Snack</h2><p id="m-snack"></p></div>
-</section>
+<div id="app"><p>Setting the table…</p></div>
 
 <footer>
   General food guidance, not medical advice — talk to a professional about what's right for you.
   Checklist lives in your browser only; nothing is sent anywhere.
   Served from the <a href="https://nedesblade.github.io/Room/">room</a>'s sideboard.
+  <span id="version"></span>
 </footer>
 </div>
 
-<script>
-/* ---- daily checklist (localStorage, resets each day) ---------------- */
-const HABITS = [
-  { id: 'greens',  what: 'A serving of leafy greens', why: 'spinach, kale, rocket — the daily base layer' },
-  { id: 'berries', what: 'Berries or colorful fruit', why: 'polyphenols do quiet good work' },
-  { id: 'oil',     what: 'Olive oil as the main fat', why: 'extra-virgin, over butter and seed-oil blends' },
-  { id: 'omega3',  what: 'Oily fish, walnuts or flax', why: 'omega-3s — salmon, sardines, chia count too' },
-  { id: 'grains',  what: 'Whole grains over white',   why: 'oats, brown rice, quinoa instead of refined' },
-  { id: 'spice',   what: 'Something spiced',          why: 'turmeric, ginger, garlic, cinnamon' },
-  { id: 'nosugar', what: 'No sugary drinks',          why: 'the single easiest win of the day' },
-  { id: 'noupf',   what: 'No ultra-processed snacks', why: 'if the label reads like a chemistry set, skip it' },
-];
+<template id="layout">
+  <section id="today">
+    <div class="card">
+      <div class="progress">
+        <div class="ring" id="ring" role="img" aria-label="">
+          <svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true">
+            <circle class="track" cx="32" cy="32" r="27" fill="none" stroke-width="7"/>
+            <circle class="fill" id="ring-fill" cx="32" cy="32" r="27" fill="none" stroke-width="7"/>
+          </svg>
+          <span class="num" id="ring-num" aria-hidden="true"></span>
+        </div>
+        <div>
+          <strong id="cheer"></strong>
+          <div class="streak" id="streak" aria-live="polite"></div>
+        </div>
+      </div>
+      <ul class="check" id="habit-list"></ul>
+    </div>
+  </section>
 
-const todayKey = () => 'aid-day-' + new Date().toISOString().slice(0, 10);
+  <section id="foods" hidden>
+    <input class="search" id="food-search" type="search" placeholder="search a food… (e.g. salmon, sugar, rice)" aria-label="Search foods">
+    <div class="card tier go"><h2><span class="dot"></span>Eat freely</h2><div class="chips" data-tier="go"></div></div>
+    <div class="card tier easy"><h2><span class="dot"></span>Easy does it</h2><div class="chips" data-tier="easy"></div></div>
+    <div class="card tier rare"><h2><span class="dot"></span>Keep rare</h2><div class="chips" data-tier="rare"></div></div>
+  </section>
+
+  <section id="meals" hidden>
+    <p class="plan-note">Today's plate, same all day — or <button class="shuffle" id="shuffle">shuffle it</button></p>
+    <div class="card meal"><h2>Breakfast</h2><p id="m-breakfast"></p></div>
+    <div class="card meal"><h2>Lunch</h2><p id="m-lunch"></p></div>
+    <div class="card meal"><h2>Dinner</h2><p id="m-dinner"></p></div>
+    <div class="card meal"><h2>Snack</h2><p id="m-snack"></p></div>
+  </section>
+</template>
+
+<script>
+const VERSION = 'v1.1';
+
+/* ---- dates are LOCAL: the day flips at the user's midnight ---------- */
+function localDateStr(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+const dayKey = d => 'aid-day-' + localDateStr(d);
 const load = k => { try { return JSON.parse(localStorage.getItem(k)) || {}; } catch { return {}; } };
 const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
 
+/* deterministic per-day random, so the meal plan holds still all day */
+function seeded(dateStr) {
+  let h = 2166136261;
+  for (const c of dateStr) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); }
+  return () => {
+    h = Math.imul(h ^ (h >>> 15), 2246822507);
+    h = Math.imul(h ^ (h >>> 13), 3266489909);
+    return ((h ^= h >>> 16) >>> 0) / 4294967296;
+  };
+}
+
+let DATA = null;
+
+/* ---- today ----------------------------------------------------------- */
+function doneCount(state) { return DATA.habits.filter(h => state[h.id]).length; }
+function goal() { return Math.ceil(DATA.habits.length * 0.6); }
+
 function renderHabits() {
-  const state = load(todayKey());
+  const state = load(dayKey(new Date()));
   const ul = document.getElementById('habit-list');
   ul.innerHTML = '';
-  for (const h of HABITS) {
+  for (const h of DATA.habits) {
     const li = document.createElement('li');
     const label = document.createElement('label');
     const box = document.createElement('input');
     box.type = 'checkbox';
     box.checked = !!state[h.id];
     box.addEventListener('change', () => {
-      const s = load(todayKey());
+      const s = load(dayKey(new Date()));
       s[h.id] = box.checked;
-      save(todayKey(), s);
+      save(dayKey(new Date()), s);
       updateProgress();
     });
     const span = document.createElement('span');
-    span.innerHTML = `<span class="what"></span><span class="why"></span>`;
-    span.querySelector('.what').textContent = h.what;
-    span.querySelector('.why').textContent = h.why;
+    const what = document.createElement('span'); what.className = 'what'; what.textContent = h.what;
+    const why = document.createElement('span'); why.className = 'why'; why.textContent = h.why;
+    span.append(what, why);
     label.append(box, span);
     li.appendChild(label);
     ul.appendChild(li);
@@ -225,66 +243,43 @@ function renderHabits() {
   updateProgress();
 }
 
+function calcStreak() {
+  /* consecutive days at or above the goal; an unfinished today doesn't
+     break the chain, it just isn't counted yet */
+  const okOn = d => doneCount(load(dayKey(d))) >= goal();
+  const d = new Date();
+  let streak = 0;
+  if (!okOn(d)) d.setDate(d.getDate() - 1);
+  while (okOn(d) && streak < 3660) { streak++; d.setDate(d.getDate() - 1); }
+  return { streak, todayCounted: okOn(new Date()) };
+}
+
 function updateProgress() {
-  const state = load(todayKey());
-  const done = HABITS.filter(h => state[h.id]).length;
-  const total = HABITS.length;
+  const done = doneCount(load(dayKey(new Date())));
+  const total = DATA.habits.length;
   const r = 27, c = 2 * Math.PI * r;
   const fill = document.getElementById('ring-fill');
   fill.style.strokeDasharray = c;
   fill.style.strokeDashoffset = c * (1 - done / total);
   document.getElementById('ring-num').textContent = `${done}/${total}`;
+  document.getElementById('ring').setAttribute('aria-label', `${done} of ${total} habits done today`);
   document.getElementById('cheer').textContent =
     done === total ? 'A perfect plate of a day.' :
-    done >= total * 0.6 ? 'The fires are dying down.' :
+    done >= goal() ? 'The fires are dying down.' :
     done > 0 ? 'Good — keep going.' : 'A fresh day.';
 
-  /* streak: consecutive past days with 60%+ done */
-  let streak = 0;
-  const d = new Date();
-  for (let i = 0; i < 366; i++) {
-    if (i > 0 || done >= total * 0.6) {
-      const key = 'aid-day-' + d.toISOString().slice(0, 10);
-      const s = load(key);
-      const n = HABITS.filter(h => s[h.id]).length;
-      if (n >= total * 0.6) streak++;
-      else if (i > 0) break;
-      else break;
-    } else break;
-    d.setDate(d.getDate() - 1);
-  }
+  const { streak, todayCounted } = calcStreak();
   document.getElementById('streak').textContent =
-    streak >= 2 ? `${streak}-day streak 🔥 (the good kind of fire)` :
-    streak === 1 ? 'Day one of a streak.' : '';
+    streak >= 2 ? `${streak}-day streak 🔥 (the good kind of fire)${todayCounted ? '' : ' — keep it alive today'}` :
+    streak === 1 ? (todayCounted ? 'Day one of a streak.' : 'Yesterday was good — make it two.') : '';
 }
 
-/* ---- food guide ----------------------------------------------------- */
-const FOODS = {
-  go: [
-    'Salmon', 'Sardines', 'Mackerel', 'Spinach', 'Kale', 'Rocket', 'Broccoli',
-    'Blueberries', 'Strawberries', 'Cherries', 'Oranges', 'Tomatoes', 'Avocado',
-    'Extra-virgin olive oil', 'Walnuts', 'Almonds', 'Chia seeds', 'Flaxseed',
-    'Lentils', 'Chickpeas', 'Black beans', 'Oats', 'Quinoa', 'Brown rice',
-    'Turmeric', 'Ginger', 'Garlic', 'Cinnamon', 'Green tea', 'Peppers',
-    'Sweet potato', 'Mushrooms', 'Olives', 'Dark chocolate (85%+)',
-  ],
-  easy: [
-    'Chicken', 'Turkey', 'Eggs', 'Greek yogurt', 'Kefir', 'Cheese', 'Butter',
-    'White rice', 'Pasta', 'Sourdough bread', 'Potatoes', 'Honey', 'Red wine',
-    'Coffee', 'Dried fruit', 'Corn', 'Tofu', 'Peanut butter',
-  ],
-  rare: [
-    'Sugary drinks', 'Candy & sweets', 'Pastries', 'White bread', 'Chips & crisps',
-    'Processed meat (bacon, salami, hot dogs)', 'Deep-fried food', 'Margarine',
-    'Instant noodles', 'Ice cream', 'Energy drinks', 'Excess alcohol',
-    'Packaged snack cakes', 'Sweetened cereals',
-  ],
-};
-
+/* ---- foods ----------------------------------------------------------- */
 function renderFoods(filter = '') {
   const q = filter.trim().toLowerCase();
-  for (const [tier, items] of Object.entries(FOODS)) {
+  for (const [tier, items] of Object.entries(DATA.foods)) {
     const el = document.querySelector(`[data-tier="${tier}"]`);
+    if (!el) continue;
     el.innerHTML = '';
     const hits = items.filter(f => f.toLowerCase().includes(q));
     for (const f of hits) {
@@ -301,64 +296,54 @@ function renderFoods(filter = '') {
     }
   }
 }
-document.getElementById('food-search').addEventListener('input', e => renderFoods(e.target.value));
 
-/* ---- meal ideas ------------------------------------------------------ */
-const MEALS = {
-  breakfast: [
-    'Overnight oats with blueberries, chia and walnuts',
-    'Greek yogurt with berries, cinnamon and flaxseed',
-    'Scrambled eggs on sourdough with spinach and tomatoes',
-    'Porridge with grated apple, cinnamon and almonds',
-    'Avocado on sourdough with olive oil and chili flakes',
-  ],
-  lunch: [
-    'Lentil soup with garlic, turmeric and a swirl of olive oil',
-    'Big salad: rocket, chickpeas, peppers, olives, feta, olive oil',
-    'Sardines on sourdough with tomato and rocket',
-    'Quinoa bowl with roasted broccoli, avocado and tahini',
-    'Chicken and vegetable soup with ginger',
-  ],
-  dinner: [
-    'Baked salmon, sweet potato and steamed broccoli',
-    'Chickpea and spinach curry with turmeric, over brown rice',
-    'Grilled mackerel with roasted peppers and quinoa',
-    'Stir-fry: tofu, mushrooms, ginger, garlic, brown rice',
-    'Bean chili with plenty of tomatoes and a side salad',
-  ],
-  snack: [
-    'A handful of walnuts and a few squares of dark chocolate',
-    'Carrot sticks with hummus',
-    'An orange and a green tea',
-    'Cherries, fresh or frozen',
-    'Almonds and a couple of dates',
-  ],
-};
-
-function shuffleMeals() {
-  for (const [slot, options] of Object.entries(MEALS)) {
+/* ---- meals ----------------------------------------------------------- */
+function renderMeals(rand) {
+  for (const [slot, options] of Object.entries(DATA.meals)) {
     const el = document.getElementById('m-' + slot);
-    const current = el.textContent;
-    let pick = current;
-    while (options.length > 1 && pick === current) {
-      pick = options[Math.floor(Math.random() * options.length)];
-    }
-    el.textContent = pick;
+    if (el && options.length) el.textContent = options[Math.floor(rand() * options.length)];
   }
 }
-document.getElementById('shuffle').addEventListener('click', shuffleMeals);
 
-/* ---- tabs ------------------------------------------------------------ */
-document.querySelectorAll('nav [role="tab"]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('nav [role="tab"]').forEach(b => b.setAttribute('aria-selected', String(b === btn)));
-    document.querySelectorAll('section').forEach(s => s.hidden = s.id !== btn.dataset.tab);
+/* ---- tabs (mouse + arrow keys) --------------------------------------- */
+function initTabs() {
+  const tabs = [...document.querySelectorAll('nav [role="tab"]')];
+  const select = btn => {
+    tabs.forEach(b => b.setAttribute('aria-selected', String(b === btn)));
+    document.querySelectorAll('#app > section').forEach(s => s.hidden = s.id !== btn.dataset.tab);
+    btn.focus();
+  };
+  tabs.forEach((btn, i) => {
+    btn.addEventListener('click', () => select(btn));
+    btn.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight') select(tabs[(i + 1) % tabs.length]);
+      if (e.key === 'ArrowLeft') select(tabs[(i - 1 + tabs.length) % tabs.length]);
+    });
   });
-});
+}
 
-renderHabits();
-renderFoods();
-shuffleMeals();
+/* ---- boot ------------------------------------------------------------ */
+async function boot() {
+  const app = document.getElementById('app');
+  try {
+    const r = await fetch('data.json', { cache: 'no-cache' });
+    if (!r.ok) throw new Error();
+    DATA = await r.json();
+  } catch {
+    app.innerHTML = '<p class="error">Couldn’t load the menu (data.json). Try a refresh.</p>';
+    return;
+  }
+  app.innerHTML = '';
+  app.appendChild(document.getElementById('layout').content.cloneNode(true));
+  renderHabits();
+  renderFoods();
+  renderMeals(seeded(localDateStr(new Date())));
+  document.getElementById('food-search').addEventListener('input', e => renderFoods(e.target.value));
+  document.getElementById('shuffle').addEventListener('click', () => renderMeals(Math.random));
+  initTabs();
+  document.getElementById('version').textContent = ` · ${VERSION}`;
+}
+boot();
 </script>
 </body>
 </html>
