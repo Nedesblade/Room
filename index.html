@@ -483,6 +483,18 @@
     color: rgba(255, 193, 138, 0.9);
   }
   .card .meta { margin-left: auto; }
+  .card .enter {
+    display: inline-block;
+    background: var(--amber);
+    color: #241505;
+    border-radius: 999px;
+    padding: 0.1rem 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .card .enter:hover, .card .enter:focus-visible { filter: brightness(1.1); }
   /* clicking a linkless (private) item pulses the card so the answer
      never lands somewhere the eye isn't */
   .card.ping { animation: card-ping 0.9s ease-out; }
@@ -679,6 +691,8 @@ const EXAMPLES = [
 /* ===================================================================== */
 
 const card = document.getElementById('card');
+/* touch-only: the project whose card a first tap opened (see renderRoom) */
+let armedSpot = null;
 const listEl = document.getElementById('project-list');
 const statusEl = document.getElementById('status');
 const params = new URLSearchParams(location.search);
@@ -712,6 +726,13 @@ function showCard(p) {
   const blurb = document.createElement('span');
   blurb.className = 'blurb'; blurb.textContent = p.blurb;
   card.append(h, blurb);
+  if (p.url) {
+    const go = document.createElement('a');
+    go.className = 'enter';
+    go.href = p.url;
+    go.textContent = 'step inside ↗';
+    card.append(go);
+  }
   const bits = [];
   if (p.pushed) bits.push(timeAgo(p.pushed));
   if (!p.url && p.priv) bits.push('private — ask me about it');
@@ -1043,8 +1064,22 @@ function renderRoom(roomData, projects) {
     const a = document.createElement(p.url ? 'a' : 'button');
     a.className = 'spot' + (isNew(p.pushed) ? ' new' : '');
     a.id = `spot-${spot.id}`;
-    if (p.url) a.href = p.url;
-    else {
+    if (p.url) {
+      a.href = p.url;
+      /* touch has no hover-preview: the first tap shows the card instead
+         of teleporting, and only the second tap (or the card's own
+         "step inside" button) actually goes. Hover devices previewed
+         already, so their click passes straight through. */
+      a.addEventListener('click', e => {
+        if (!matchMedia('(hover: none)').matches) return;
+        if (armedSpot === p) return;
+        e.preventDefault();
+        armedSpot = p;
+        showCard(p);
+        card.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        card.classList.remove('ping'); void card.offsetWidth; card.classList.add('ping');
+      });
+    } else {
       a.type = 'button';
       a.addEventListener('click', () => {
         showCard(p);
